@@ -9,6 +9,8 @@ import java.sql.Timestamp;
 @TableName("t_question")
 public class Question {
     private String id;
+    private String phaseId;
+    private Integer number;
     private String content;
     private String options;
     private String answer;

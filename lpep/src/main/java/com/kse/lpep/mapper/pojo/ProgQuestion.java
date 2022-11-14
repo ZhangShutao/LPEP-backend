@@ -9,7 +9,9 @@ import java.sql.Timestamp;
 @TableName("t_prog_question")
 public class ProgQuestion {
     private String id;
-    private String text;   //映射表中的text字段
+    private String phaseId;
+    private Integer number;
+    private String content;   //映射表中的text字段
     private String testInputPath;
     private String testOutputPath;
     private Timestamp createTime;

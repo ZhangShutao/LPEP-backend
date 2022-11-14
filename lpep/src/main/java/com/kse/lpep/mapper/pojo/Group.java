@@ -12,5 +12,4 @@ public class Group {
     private String experId;
     private String title;
     private Timestamp createTime;
-    private String trainingMaterialId;
 }
