@@ -1,4 +1,4 @@
-package com.kse.lpep.controller.vo.user;
+package com.kse.lpep.controller.vo;
 
 import lombok.Data;
 

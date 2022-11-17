@@ -11,13 +11,17 @@ import com.kse.lpep.mapper.pojo.UserFootprint;
 import com.kse.lpep.mapper.pojo.UserGroup;
 import com.kse.lpep.service.IUserService;
 import com.kse.lpep.service.dto.ExperInfo;
-import com.kse.lpep.service.dto.TesterInfo;
+import com.kse.lpep.service.dto.PersonalInfo;
 import com.kse.lpep.service.dto.UserLoginResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.logging.SimpleFormatter;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,38 +43,26 @@ public class UserServiceImpl implements IUserService {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("username", username);
         UserLoginResult userLoginResult = new UserLoginResult();
-        try{
-            User user = userMapper.selectOne(queryWrapper);
-            // 情况1：用户账号密码错误
-            if(!user.getPassword().equals(password)){
-                userLoginResult.setState(1);
-            }
-            // 情况2：用户账号密码正确，正常登录
-            else {
-                userLoginResult.setState(2).setId(user.getId()).setUserName(user.getUsername())
-                        .setRealName(user.getRealname()).setIsAdmin(user.getIsAdmin());
-            }
-        }catch (NullPointerException  e){
-            // 情况0：登录的用户不存在
-            userLoginResult.setState(0);
-        }finally {
-            return userLoginResult;
+        User user = userMapper.selectOne(queryWrapper);
+        if(user == null || !(user.getPassword().equals(password))){
+            System.out.println(user);
+            throw new NullPointerException();
         }
+        userLoginResult.setId(user.getId()).setUsername(user.getUsername())
+                .setRealname(user.getRealname()).setIsAdmin(user.getIsAdmin());
+        return userLoginResult;
     }
+
     @Override
-    public TesterInfo testerBasicInfo(String id) {
-        TesterInfo testerInfo = new TesterInfo();
-        try{
-            // 情况2：正常查询并返回
-            User user = userMapper.selectById(id);
-            testerInfo.setUserName(user.getUsername()).setRealName(user.getRealname()).setState(1)
-                    .setCreateTime(user.getCreateTime()).setMsg("查询成功");
-        }catch (NullPointerException e){
-            // 情况1：查询用户主键不存在
-            testerInfo.setState(0);
-        } finally {
-            return testerInfo;
+    public PersonalInfo personalBasicInfo(String id) {
+        PersonalInfo personalInfo = new PersonalInfo();
+        User user = userMapper.selectById(id);
+        if(user == null){
+            throw new NullPointerException();
         }
+        String myTime = new SimpleDateFormat("yyyy-MM-dd").format(user.getCreateTime());
+        personalInfo.setUsername(user.getUsername()).setRealname(user.getRealname()).setCreateTime(myTime);
+        return personalInfo;
     }
 //    public List<ExperInfo> experToParticipate(String id) {
 //        // 记录最后的结果
@@ -163,7 +155,7 @@ public class UserServiceImpl implements IUserService {
     4. 返回最终结果
      */
     @Override
-    public List<ExperInfo> experToParticipate(String id) throws NullPointerException{
+    public List<ExperInfo> expersToParticipate(String id){
         List<ExperInfo> list = new ArrayList<>();
         // 1.判断用户是否存在
         if(userMapper.selectById(id) == null){
@@ -188,12 +180,13 @@ public class UserServiceImpl implements IUserService {
             ExperInfo experInfo = new ExperInfo();
             experInfo.setState(0);
             if(userFootprint != null){
-                if(userFootprint.getIsComplete() == 1){
+                if(userFootprint.getIsEnd() == 1){
                     continue;
                 }
                 // 情况1：存在实验中断
-                experInfo.setCurrentPhaseId(userFootprint.getCurrentPhaseId()).setCurrentStartTime(userFootprint.getStartTime())
-                        .setCurrentQuestionId(userFootprint.getCurrentQuestionId()).setState(1);
+                experInfo.setCurrentPhaseNumber(userFootprint.getCurrentPhaseNumber())
+                        .setCurrentStartTime(userFootprint.getStartTime())
+                        .setCurrentQuestionNumber(userFootprint.getCurrentQuestionNumber()).setState(1);
                 isExistBreak = true;
             }
             // 情况2：正常情况，正常状态为1，存在中断状态为2
@@ -213,13 +206,4 @@ public class UserServiceImpl implements IUserService {
         }
         return list;
     }
-
-//    @Override
-//    public boolean testException(String id) throws NullPointerException{
-//        User user = userMapper.selectById(id);
-//        if(user.getIsAdmin() == 1){
-//            return true;
-//        }
-//        return false;
-//    }
 }

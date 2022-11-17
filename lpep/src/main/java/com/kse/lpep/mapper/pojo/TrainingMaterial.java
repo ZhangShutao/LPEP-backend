@@ -12,5 +12,5 @@ public class TrainingMaterial {
     private String groupId;
     private String title;
     private String absolutePath;
-    private Timestamp createTime;
+    private Timestamp lastUpdateTime;
 }

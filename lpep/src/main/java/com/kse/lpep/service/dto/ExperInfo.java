@@ -21,12 +21,12 @@ public class ExperInfo {
     // 实验开始时间
     private Timestamp startTime;
     /*
-       状态0表示存在中断的实验，所有的其他正常实验状态全部置0
+       状态0表示存在中断的实验，其他正常实验状态全部置0
        状态1为正常状态
        状态2表示用户存在中断的实验
      */
     private Integer state;
-    private String CurrentPhaseId;
-    private String CurrentQuestionId;
+    private Integer CurrentPhaseNumber;
+    private Integer CurrentQuestionNumber;
     private Timestamp CurrentStartTime;
 }

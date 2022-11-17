@@ -1,4 +1,4 @@
-package com.kse.lpep.controller.vo.user;
+package com.kse.lpep.controller.vo.garbage;
 
 import com.kse.lpep.service.dto.ExperInfo;
 import lombok.Data;

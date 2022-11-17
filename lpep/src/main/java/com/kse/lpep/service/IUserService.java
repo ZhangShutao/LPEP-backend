@@ -1,7 +1,7 @@
 package com.kse.lpep.service;
 
 import com.kse.lpep.service.dto.ExperInfo;
-import com.kse.lpep.service.dto.TesterInfo;
+import com.kse.lpep.service.dto.PersonalInfo;
 import com.kse.lpep.service.dto.UserLoginResult;
 
 import java.util.List;
@@ -20,12 +20,12 @@ public interface IUserService {
      * @param id 用户唯一标识id
      * @return 用户个人基本信息
      */
-    TesterInfo testerBasicInfo(String id);
+    PersonalInfo personalBasicInfo(String id);
 
     /**
      * 用户查询待参与的实验
      * @param id 用户唯一标识id
      * @return 用户待参与的实验
      */
-    List<ExperInfo> experToParticipate(String id);
+    List<ExperInfo> expersToParticipate(String id);
 }

@@ -1,6 +1,7 @@
 package com.kse.lpep;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.exceptions.MybatisPlusException;
 import com.kse.lpep.mapper.IExperMapper;
 import com.kse.lpep.mapper.IUserFootprintMapper;
@@ -11,11 +12,9 @@ import com.kse.lpep.mapper.pojo.UserFootprint;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.object.UpdatableSqlQuery;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SpringBootTest
 class UserTest {
@@ -115,6 +114,30 @@ class UserTest {
         }else {
             System.out.println("balnk");
         }
+    }
+
+    // 测试结果为从小到大排序
+    @Test
+    void testSort(){
+        List<Integer> list = new ArrayList<>();
+        list.add(7); list.add(4); list.add(8); list.add(1);
+        Collections.sort(list, (a, b) ->  a - b);
+        for(int x : list){
+            System.out.println(x);
+        }
+    }
+
+    // 测试mybatisPlus的插入和修改功能
+    @Test
+    void testInsertAndUpdate(){
+        UpdateWrapper<UserFootprint> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("user_id", "f6c729d3624f11edab7a2cf05decb14f")
+                .eq("exper_id", "34f6879f61c911edab7a2cf05decb14f");
+        UserFootprint userFootprint = new UserFootprint();
+//        userFootprint.setCurrentPhaseId("100");
+//        userFootprint.setCurrentQuestionId("111");
+        userFootprintMapper.update(userFootprint, updateWrapper);
+
     }
 
 }

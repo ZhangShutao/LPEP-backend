@@ -5,20 +5,14 @@ import lombok.experimental.Accessors;
 
 /**
  * 用户登录信息封装
- * service层处理后返回给controller层
+ * 情况1：用户名不存在或者账号密码错误此类为null
+ * 情况2：用户成功登录，返回正确的信息
  */
 @Data
 @Accessors(chain = true)
 public class UserLoginResult {
-    /*
-     用户登录状态：
-        0 表示用户名不存在
-        1 表示用户名账号密码验证错误
-        2 表示用户成功登录
-     */
-    private int state;
     private String id;
-    private String userName;
-    private String realName;
+    private String username;
+    private String realname;
     private Integer isAdmin;
 }
