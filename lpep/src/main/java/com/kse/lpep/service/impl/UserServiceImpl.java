@@ -11,17 +11,16 @@ import com.kse.lpep.mapper.pojo.UserFootprint;
 import com.kse.lpep.mapper.pojo.UserGroup;
 import com.kse.lpep.service.IUserService;
 import com.kse.lpep.service.dto.ExperInfo;
-import com.kse.lpep.service.dto.PersonalInfo;
+import com.kse.lpep.service.dto.PersonalResult;
+import com.kse.lpep.service.dto.TesterInfo;
 import com.kse.lpep.service.dto.UserLoginResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.logging.SimpleFormatter;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,21 +47,21 @@ public class UserServiceImpl implements IUserService {
             System.out.println(user);
             throw new NullPointerException();
         }
-        userLoginResult.setId(user.getId()).setUsername(user.getUsername())
+        userLoginResult.setUserId(user.getId()).setUsername(user.getUsername())
                 .setRealname(user.getRealname()).setIsAdmin(user.getIsAdmin());
         return userLoginResult;
     }
 
     @Override
-    public PersonalInfo personalBasicInfo(String id) {
-        PersonalInfo personalInfo = new PersonalInfo();
+    public PersonalResult personalBasicInfo(String id) {
+        PersonalResult personalResult = new PersonalResult();
         User user = userMapper.selectById(id);
         if(user == null){
             throw new NullPointerException();
         }
         String myTime = new SimpleDateFormat("yyyy-MM-dd").format(user.getCreateTime());
-        personalInfo.setUsername(user.getUsername()).setRealname(user.getRealname()).setCreateTime(myTime);
-        return personalInfo;
+        personalResult.setUsername(user.getUsername()).setRealname(user.getRealname()).setCreateTime(myTime);
+        return personalResult;
     }
 //    public List<ExperInfo> experToParticipate(String id) {
 //        // 记录最后的结果
@@ -184,14 +183,16 @@ public class UserServiceImpl implements IUserService {
                     continue;
                 }
                 // 情况1：存在实验中断
+                String currentStartTime = new SimpleDateFormat("yyyy-MM-dd").format(userFootprint.getStartTime());
                 experInfo.setCurrentPhaseNumber(userFootprint.getCurrentPhaseNumber())
-                        .setCurrentStartTime(userFootprint.getStartTime())
+                        .setCurrentStartTime(currentStartTime)
                         .setCurrentQuestionNumber(userFootprint.getCurrentQuestionNumber()).setState(1);
                 isExistBreak = true;
             }
             // 情况2：正常情况，正常状态为1，存在中断状态为2
             Exper exper = experMapper.selectById(experId);
-            experInfo.setId(experId).setTitle(exper.getTitle()).setStartTime(exper.getStartTime())
+            String startTime = new SimpleDateFormat("yyyy-MM-dd").format(exper.getStartTime());
+            experInfo.setExperId(experId).setTitle(exper.getTitle()).setStartTime(startTime)
                     .setState(experInfo.getState() + 1);
             list.add(experInfo);
             }
@@ -205,5 +206,57 @@ public class UserServiceImpl implements IUserService {
             }).collect(Collectors.toList());
         }
         return list;
+    }
+
+    @Override
+    public List<TesterInfo> queryAllTester() {
+        List<User> userList = userMapper.selectList(null);
+        List<TesterInfo> testerInfoList = userList.stream()
+                .filter(user -> {
+                    return user.getIsAdmin() == 0;
+                }).map(user -> {
+                    TesterInfo testerInfo = new TesterInfo();
+                    String createTime = new SimpleDateFormat("yyyy-MM-dd").format(user.getCreateTime());
+                    testerInfo.setUserId(user.getId()).setUsername(user.getUsername()).setRealname(user.getRealname())
+                            .setIsAdmin(user.getIsAdmin());
+                    // 发现一个奇怪的问题，估计是IDEA的问题，在上面不能跟着写下面这行
+                    testerInfo.setCreateTime(createTime);
+                    return testerInfo;
+                }).collect(Collectors.toList());
+        return testerInfoList;
+    }
+
+    @Override
+    public int createNewUser(String username, String realname, int isAdmin) {
+        User user = new User();
+        user.setUsername(username).setPassword(username).setRealname(realname).setIsAdmin(isAdmin);
+        int status = 0;
+        try{
+            status = userMapper.insert(user);
+            // 用户账号唯一，捕获重复插入的异常
+        }catch (DuplicateKeyException e){
+            status = 0;
+        }finally {
+            return status;
+        }
+    }
+
+
+//    @Override
+//    public boolean isUserExist(String userId) {
+//        User user = userMapper.selectById(userId);
+//        if(user == null){
+//            return false;
+//        }
+//        return true;
+//    }
+
+
+    /**
+     * 管理员删除用户
+     */
+    @Override
+    public int deleteUser(String userId) {
+        return userMapper.deleteById(userId);
     }
 }

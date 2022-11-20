@@ -11,7 +11,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class UserLoginResult {
-    private String id;
+    private String userId;
     private String username;
     private String realname;
     private Integer isAdmin;

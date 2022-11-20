@@ -5,7 +5,7 @@ import com.kse.lpep.controller.vo.UserLoginRequest;
 import com.kse.lpep.service.ITrainingMaterialService;
 import com.kse.lpep.service.IUserService;
 import com.kse.lpep.service.dto.ExperInfo;
-import com.kse.lpep.service.dto.PersonalInfo;
+import com.kse.lpep.service.dto.PersonalResult;
 import com.kse.lpep.service.dto.TrainingMaterialInfo;
 import com.kse.lpep.service.dto.UserLoginResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +39,11 @@ public class UserController {
         }
     }
     @GetMapping ("/getpersonalinfo")
-    public BaseResponse<PersonalInfo> getPersonalInfo(String id){
-        BaseResponse<PersonalInfo> response = new BaseResponse<>();
+    public BaseResponse<PersonalResult> getPersonalInfo(String userId){
+        BaseResponse<PersonalResult> response = new BaseResponse<>();
         try{
-            PersonalInfo personalInfo = userService.personalBasicInfo(id);
-            response.setStatus(200).setMsg("访问个人数据成功").setData(personalInfo);
+            PersonalResult personalResult = userService.personalBasicInfo(userId);
+            response.setStatus(200).setMsg("访问个人数据成功").setData(personalResult);
         }catch (NullPointerException e){
             response.setStatus(200).setMsg("访问个人数据失败");
         }finally {
@@ -56,10 +56,10 @@ public class UserController {
       用户可能存在实验中断的实验
      */
     @GetMapping("/experstopart")
-    public BaseResponse<List<ExperInfo>> expersToPart(String id){
+    public BaseResponse<List<ExperInfo>> expersToPart(String userId){
         BaseResponse<List<ExperInfo>> response = new BaseResponse<>();
         try{
-            List<ExperInfo> experInfos = userService.expersToParticipate(id);
+            List<ExperInfo> experInfos = userService.expersToParticipate(userId);
             int state = experInfos.get(0).getState();
             // 情况2：存在中断的实验
             if(state == 0 || state == 2){

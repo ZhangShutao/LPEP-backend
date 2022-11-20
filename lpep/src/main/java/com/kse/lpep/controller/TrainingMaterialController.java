@@ -37,7 +37,7 @@ public class TrainingMaterialController {
 //            log.info("Error writing file to output stream. Filename was '{}'", fileName, ex);
             throw new RuntimeException("IOError writing file to output stream");
         }
-
+//    版本1
 //    @GetMapping("/files/{file_name}")
 //    public void getFile(
 //            @PathVariable("file_name") String fileName,

@@ -1,6 +1,7 @@
 package com.kse.lpep.service;
 
 import com.kse.lpep.mapper.pojo.UserFootprint;
+import com.kse.lpep.service.dto.ExperInfo;
 import com.kse.lpep.service.dto.NextPhaseStatusResult;
 import com.kse.lpep.service.dto.NonProgQuestionInfo;
 import com.kse.lpep.service.dto.ProgQuestionResult;
@@ -28,7 +29,40 @@ public interface IExperService {
      */
     List<NonProgQuestionInfo> acquireNonProgQuestion(String userId, String experId, int phaseNumber);
 
+    /**
+     * 按照题号获取编程题
+     * @param userId
+     * @param experId
+     * @param phaseNumber
+     * @param questionNumber
+     * @return
+     */
     ProgQuestionResult acquireProgQuestion(String userId, String experId,
                                            int phaseNumber, int questionNumber);
+
+    /**
+     * 管理员获取所有的实验
+     * @return
+     */
+    List<ExperInfo> getAllExper();
+
+    /**
+     * 修改实验状态，主要服务于管理员的实验开始和实验结束
+     * @param experId
+     */
+    void modifyExperStatus(String experId, int currentStatus, int targetStatus);
+
+    /**
+     * 查询当前实验状态，主要是为了校验用
+     * @param experId
+     * @return
+     */
+    int queryExperCurrentStatus(String experId);
+
+    /**
+     * 列举所有求解器的类型
+     * @return
+     */
+    List<String> listRunnerType();
 
 }

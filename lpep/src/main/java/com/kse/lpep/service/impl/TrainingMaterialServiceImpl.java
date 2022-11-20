@@ -1,14 +1,13 @@
 package com.kse.lpep.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.kse.lpep.mapper.IExperMapper;
-import com.kse.lpep.mapper.ITrainingMaterialMapper;
-import com.kse.lpep.mapper.IUserGroupMapper;
-import com.kse.lpep.mapper.IUserMapper;
+import com.kse.lpep.mapper.*;
 import com.kse.lpep.mapper.pojo.Exper;
+import com.kse.lpep.mapper.pojo.Group;
 import com.kse.lpep.mapper.pojo.TrainingMaterial;
 import com.kse.lpep.mapper.pojo.UserGroup;
 import com.kse.lpep.service.ITrainingMaterialService;
+import com.kse.lpep.service.dto.QueryTrainingMaterialInfo;
 import com.kse.lpep.service.dto.TrainingMaterialInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,6 +28,8 @@ public class TrainingMaterialServiceImpl implements ITrainingMaterialService {
     private ITrainingMaterialMapper trainingMaterialMapper;
     @Autowired
     private IUserMapper userMapper;
+    @Autowired
+    private IGroupMapper groupMapper;
     /**
      * 1.首先查询个人实验状态未结束的所有experId
      * 2.根据userId和experId获取groupId
@@ -61,13 +62,41 @@ public class TrainingMaterialServiceImpl implements ITrainingMaterialService {
                                 .format(trainingMaterial.getLastUpdateTime());
 
                         trainingMaterialInfo.setId(trainingMaterial.getId()).setTitle(trainingMaterial.getTitle())
-                                .setAbsolutePath(trainingMaterial.getAbsolutePath()).setExperName(experTitle)
-                                .setLastUpdateTime(lastUpdateTime);
+                                .setExperName(experTitle).setLastUpdateTime(lastUpdateTime);
                         return trainingMaterialInfo;
                     }).collect(Collectors.toList());
             return trainingMaterialInfos;
         }catch (NullPointerException e){
             throw new NullPointerException();
         }
+    }
+
+    @Override
+    public List<QueryTrainingMaterialInfo> queryAllMaterialInfo() {
+        try{
+            List<TrainingMaterial> trainingMaterialList = trainingMaterialMapper.selectList(null);
+            List<QueryTrainingMaterialInfo> queryTrainingMaterialInfoList = trainingMaterialList.stream()
+                    .map(trainingMaterial ->
+                    {
+                        QueryTrainingMaterialInfo myItem = new QueryTrainingMaterialInfo();
+                        String lastUpdateTime = new SimpleDateFormat("yyyy-MM-dd")
+                                .format(trainingMaterial.getLastUpdateTime());
+                        Group group = groupMapper.selectById(trainingMaterial.getGroupId());
+                        String groupName = group.getTitle();
+                        String experTitle = experMapper.selectById(group.getExperId()).getTitle();
+                        myItem.setId(trainingMaterial.getId()).setTitle(trainingMaterial.getTitle())
+                                .setLastUpdateTime(lastUpdateTime).setExperName(experTitle);
+                        myItem.setGroupName(groupName);
+                        return myItem;
+                    }).collect(Collectors.toList());
+            return queryTrainingMaterialInfoList;
+        }catch (NullPointerException e){
+            throw new NullPointerException();
+        }
+    }
+
+    @Override
+    public Integer removeTrainingMaterialById(String id) {
+        return trainingMaterialMapper.deleteById(id);
     }
 }

@@ -10,10 +10,7 @@ import com.kse.lpep.service.dto.NextPhaseStatusResult;
 import com.kse.lpep.service.dto.NonProgQuestionInfo;
 import com.kse.lpep.service.dto.ProgQuestionResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -92,6 +89,15 @@ public class ExperController {
             return response;
         }
     }
+
+    @GetMapping("listallrunner")
+    public BaseResponse<List<String>> listAllRunner(){
+        BaseResponse<List<String>> response = new BaseResponse<>();
+        List<String> data = experService.listRunnerType();
+        response.setStatus(200).setMsg("返回所有runner的名称").setData(data);
+        return response;
+    }
+
 
 
 }

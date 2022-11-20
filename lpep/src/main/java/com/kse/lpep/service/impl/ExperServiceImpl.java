@@ -5,12 +5,14 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.kse.lpep.mapper.*;
 import com.kse.lpep.mapper.pojo.*;
 import com.kse.lpep.service.IExperService;
+import com.kse.lpep.service.dto.ExperInfo;
 import com.kse.lpep.service.dto.NextPhaseStatusResult;
 import com.kse.lpep.service.dto.NonProgQuestionInfo;
 import com.kse.lpep.service.dto.ProgQuestionResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +29,10 @@ public class ExperServiceImpl implements IExperService {
     private IUserFootprintMapper userFootprintMapper;
     @Autowired
     private IProgQuestionMapper progQuestionMapper;
+    @Autowired
+    private IExperMapper experMapper;
+    @Autowired
+    private IRunnerMapper runnerMapper;
 
     /*
    1. 首先判断实验是否结束，结束则修改用户做题状态
@@ -153,6 +159,55 @@ public class ExperServiceImpl implements IExperService {
             // 如果出现空，说明前端数据传输错误或者非编程题
             throw new NullPointerException();
         }
+    }
+
+    @Override
+    public List<ExperInfo> getAllExper() {
+        List<ExperInfo> experInfoList = experMapper.selectList(null).stream()
+                .map(exper ->
+                {
+                    ExperInfo experInfo = new ExperInfo();
+                    String startTime = new SimpleDateFormat("yyyy-MM-dd").format(exper.getStartTime());
+                    experInfo.setExperId(exper.getId()).setTitle(exper.getTitle()).setState(exper.getState())
+                            .setStartTime(startTime);
+                    return experInfo;
+                }).collect(Collectors.toList());
+        return experInfoList;
+    }
+
+    @Override
+    public void modifyExperStatus(String experId, int currentStatus, int targetStatus) {
+        // 首先查询实验是否存在
+        // 实验状态只能从0变成2，2变成1，不存在其他状态
+        Exper exper = experMapper.selectById(experId);
+        // 实验不存在，抛出异常
+        if(exper == null){
+            throw new NullPointerException();
+        }
+        exper.setState(targetStatus);
+        // 管理员点击实验开始
+        if((currentStatus == 0 && targetStatus == 2) || (currentStatus == 2 && targetStatus == 1)){
+            experMapper.updateById(exper);
+            return;
+        }
+        throw new NullPointerException();
+    }
+
+    @Override
+    public int queryExperCurrentStatus(String experId) {
+        try{
+            return experMapper.selectById(experId).getState();
+        }catch (NullPointerException e){
+            throw new NullPointerException();
+        }
+    }
+
+    @Override
+    public List<String> listRunnerType() {
+        List<Runner> runnerList = runnerMapper.selectList(null);
+        List<String> runnerNameList = runnerList.stream()
+                .map(Runner::getName).collect(Collectors.toList());
+        return runnerNameList;
     }
 
     private void modifyUserFootprint(String userId, String experId, Integer currentPhaseNumber,

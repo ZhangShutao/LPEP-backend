@@ -14,6 +14,6 @@ public class TrainingMaterialInfo {
     private String title;
     // 实验名字
     private String experName;
-    private String absolutePath;
+//    private String absolutePath;
     private String lastUpdateTime;
 }

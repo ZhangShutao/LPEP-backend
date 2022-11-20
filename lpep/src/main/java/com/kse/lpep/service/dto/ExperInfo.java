@@ -15,11 +15,11 @@ import java.sql.Timestamp;
 @Accessors(chain = true)
 public class ExperInfo {
     // 实验id
-    private String id;
+    private String experId;
     // 实验名称
     private String title;
     // 实验开始时间
-    private Timestamp startTime;
+    private String startTime;
     /*
        状态0表示存在中断的实验，其他正常实验状态全部置0
        状态1为正常状态
@@ -28,5 +28,5 @@ public class ExperInfo {
     private Integer state;
     private Integer CurrentPhaseNumber;
     private Integer CurrentQuestionNumber;
-    private Timestamp CurrentStartTime;
+    private String CurrentStartTime;
 }

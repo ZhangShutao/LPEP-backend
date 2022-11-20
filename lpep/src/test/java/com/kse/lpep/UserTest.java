@@ -12,6 +12,7 @@ import com.kse.lpep.mapper.pojo.UserFootprint;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.object.UpdatableSqlQuery;
 
 import java.util.*;
@@ -137,7 +138,37 @@ class UserTest {
 //        userFootprint.setCurrentPhaseId("100");
 //        userFootprint.setCurrentQuestionId("111");
         userFootprintMapper.update(userFootprint, updateWrapper);
+    }
 
+    // 测试delete
+    @Test
+    void testMyDelete(){
+        int x = userMapper.deleteById("e2a51e8967f411ed8ed92cf05decb14f");
+        System.out.println(x);
+    }
+
+    // 测试insert相同账号的用户
+    @Test
+    void testInsertSameUser(){
+        User user = new User();
+        String s = "21312";
+        user.setUsername(s).setPassword(s).setRealname(s);
+        user.setIsAdmin(0);
+        try {
+            int status = userMapper.insert(user);
+            System.out.println(status);
+        }catch (DuplicateKeyException e){
+            System.out.println("捕获异常");
+        }
+    }
+
+    // 测试删除不存在的用户
+    // 测试结果：成功删除1，删除失败0，没有异常
+    @Test
+    void testDeleteUser(){
+        String userId = "526997e2689611ed8ed92cf05decb14f";
+        int status = userMapper.deleteById(userId);
+        System.out.println(status);
     }
 
 }
