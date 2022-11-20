@@ -1,6 +1,8 @@
 package com.kse.lpep.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kse.lpep.mapper.IExperMapper;
 import com.kse.lpep.mapper.IUserFootprintMapper;
 import com.kse.lpep.mapper.IUserGroupMapper;
@@ -10,10 +12,7 @@ import com.kse.lpep.mapper.pojo.User;
 import com.kse.lpep.mapper.pojo.UserFootprint;
 import com.kse.lpep.mapper.pojo.UserGroup;
 import com.kse.lpep.service.IUserService;
-import com.kse.lpep.service.dto.ExperInfo;
-import com.kse.lpep.service.dto.PersonalResult;
-import com.kse.lpep.service.dto.TesterInfo;
-import com.kse.lpep.service.dto.UserLoginResult;
+import com.kse.lpep.service.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -209,12 +208,13 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public List<TesterInfo> queryAllTester() {
-        List<User> userList = userMapper.selectList(null);
-        List<TesterInfo> testerInfoList = userList.stream()
-                .filter(user -> {
-                    return user.getIsAdmin() == 0;
-                }).map(user -> {
+    public TesterInfoPage queryAllTester(int pageIndex, int pageSize) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("is_admin", 0);
+        Page<User> userPage = new Page<>(pageIndex, pageSize, true);
+        IPage<User> userIPage = userMapper.selectPage(userPage, queryWrapper);
+        List<TesterInfo> testerInfoList = userIPage.getRecords().stream()
+                .map(user -> {
                     TesterInfo testerInfo = new TesterInfo();
                     String createTime = new SimpleDateFormat("yyyy-MM-dd").format(user.getCreateTime());
                     testerInfo.setUserId(user.getId()).setUsername(user.getUsername()).setRealname(user.getRealname())
@@ -223,21 +223,26 @@ public class UserServiceImpl implements IUserService {
                     testerInfo.setCreateTime(createTime);
                     return testerInfo;
                 }).collect(Collectors.toList());
-        return testerInfoList;
+        TesterInfoPage testerInfoPage = new TesterInfoPage();
+        testerInfoPage.setRecordCount((int)userIPage.getTotal()).setTesterInfoList(testerInfoList);
+        return testerInfoPage;
     }
 
     @Override
-    public int createNewUser(String username, String realname, int isAdmin) {
+    public TesterInfo createNewUser(String username, String realname, int isAdmin) {
         User user = new User();
         user.setUsername(username).setPassword(username).setRealname(realname).setIsAdmin(isAdmin);
-        int status = 0;
         try{
-            status = userMapper.insert(user);
+            userMapper.insert(user);
+            QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("username", username);
+            String userId = userMapper.selectOne(queryWrapper).getId();
+            TesterInfo testerInfo = new TesterInfo();
+            testerInfo.setUserId(userId).setUsername(username).setRealname(realname).setIsAdmin(isAdmin);
             // 用户账号唯一，捕获重复插入的异常
+            return testerInfo;
         }catch (DuplicateKeyException e){
-            status = 0;
-        }finally {
-            return status;
+            return null;
         }
     }
 

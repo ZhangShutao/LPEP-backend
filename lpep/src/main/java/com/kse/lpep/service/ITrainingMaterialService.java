@@ -1,6 +1,7 @@
 package com.kse.lpep.service;
 
 import com.kse.lpep.service.dto.QueryTrainingMaterialInfo;
+import com.kse.lpep.service.dto.QueryTrainingMaterialInfoPage;
 import com.kse.lpep.service.dto.TrainingMaterialInfo;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public interface ITrainingMaterialService {
      * 管理员查询所有的培训材料
      * @return
      */
-    List<QueryTrainingMaterialInfo> queryAllMaterialInfo();
+    QueryTrainingMaterialInfoPage queryAllMaterialInfo(int pageIndex, int pageSize);
 
     /**
      * 管理员删除指定的培训材料

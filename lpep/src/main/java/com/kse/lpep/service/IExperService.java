@@ -1,10 +1,7 @@
 package com.kse.lpep.service;
 
 import com.kse.lpep.mapper.pojo.UserFootprint;
-import com.kse.lpep.service.dto.ExperInfo;
-import com.kse.lpep.service.dto.NextPhaseStatusResult;
-import com.kse.lpep.service.dto.NonProgQuestionInfo;
-import com.kse.lpep.service.dto.ProgQuestionResult;
+import com.kse.lpep.service.dto.*;
 
 import java.util.List;
 
@@ -44,7 +41,7 @@ public interface IExperService {
      * 管理员获取所有的实验
      * @return
      */
-    List<ExperInfo> getAllExper();
+    ExperInfoPage getAllExper(int pageIndex, int pageSize);
 
     /**
      * 修改实验状态，主要服务于管理员的实验开始和实验结束

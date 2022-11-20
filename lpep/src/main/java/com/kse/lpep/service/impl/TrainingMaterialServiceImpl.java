@@ -1,6 +1,8 @@
 package com.kse.lpep.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kse.lpep.mapper.*;
 import com.kse.lpep.mapper.pojo.Exper;
 import com.kse.lpep.mapper.pojo.Group;
@@ -8,6 +10,7 @@ import com.kse.lpep.mapper.pojo.TrainingMaterial;
 import com.kse.lpep.mapper.pojo.UserGroup;
 import com.kse.lpep.service.ITrainingMaterialService;
 import com.kse.lpep.service.dto.QueryTrainingMaterialInfo;
+import com.kse.lpep.service.dto.QueryTrainingMaterialInfoPage;
 import com.kse.lpep.service.dto.TrainingMaterialInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -72,9 +75,14 @@ public class TrainingMaterialServiceImpl implements ITrainingMaterialService {
     }
 
     @Override
-    public List<QueryTrainingMaterialInfo> queryAllMaterialInfo() {
+    public QueryTrainingMaterialInfoPage queryAllMaterialInfo(int pageIndex, int pageSize) {
         try{
-            List<TrainingMaterial> trainingMaterialList = trainingMaterialMapper.selectList(null);
+            Page<TrainingMaterial> trainingMaterialPage = new Page<>(pageIndex, pageSize, true);
+            IPage<TrainingMaterial> trainingMaterialIPage = trainingMaterialMapper
+                    .selectPage(trainingMaterialPage, null);
+
+            List<TrainingMaterial> trainingMaterialList = trainingMaterialIPage.getRecords();
+
             List<QueryTrainingMaterialInfo> queryTrainingMaterialInfoList = trainingMaterialList.stream()
                     .map(trainingMaterial ->
                     {
@@ -89,7 +97,10 @@ public class TrainingMaterialServiceImpl implements ITrainingMaterialService {
                         myItem.setGroupName(groupName);
                         return myItem;
                     }).collect(Collectors.toList());
-            return queryTrainingMaterialInfoList;
+            QueryTrainingMaterialInfoPage queryTrainingMaterialInfoPage = new QueryTrainingMaterialInfoPage();
+            queryTrainingMaterialInfoPage.setRecordCount((int)trainingMaterialIPage.getTotal())
+                    .setQueryTrainingMaterialInfoList(queryTrainingMaterialInfoList);
+            return queryTrainingMaterialInfoPage;
         }catch (NullPointerException e){
             throw new NullPointerException();
         }

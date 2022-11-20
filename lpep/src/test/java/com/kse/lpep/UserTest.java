@@ -3,6 +3,8 @@ package com.kse.lpep;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.exceptions.MybatisPlusException;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kse.lpep.mapper.IExperMapper;
 import com.kse.lpep.mapper.IUserFootprintMapper;
 import com.kse.lpep.mapper.IUserMapper;
@@ -169,6 +171,38 @@ class UserTest {
         String userId = "526997e2689611ed8ed92cf05decb14f";
         int status = userMapper.deleteById(userId);
         System.out.println(status);
+    }
+
+
+    // 测试mybatisPlus插入成功后返回主键
+//    @Test
+//    void testReturnId(){
+//        User user = new User();
+//        user.setUsername("111").setRealname("111").setPassword("123").setIsAdmin(0);
+//        userMapper.insert(user);
+//        String s = user.getId();
+//        System.out.println(s);
+//    }
+
+    // 测试mybatisPlus的分页功能
+    @Test
+    void testPage(){
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("is_admin", 0);
+//        // 分页用法1
+//        Page<User> userPage = new Page<>(1, 2, true);
+//        IPage<User> userIPage = userMapper.selectPage(userPage, queryWrapper);
+//        System.out.println("总页数" + userPage.getPages());
+//        System.out.println("总记录数" + userIPage.getTotal());
+//        userPage.getRecords().forEach(System.out::println);
+
+
+        // 分页用法2
+        Page<Map<String, Object>> mapPage = new Page<>(1, 2, true);
+        IPage<Map<String, Object>> mapIPage = userMapper.selectMapsPage(mapPage, queryWrapper);
+        System.out.println("总页数" + mapIPage.getPages());
+        System.out.println("总记录数" + mapIPage.getTotal());
+        mapIPage.getRecords().forEach(System.out::println);
     }
 
 }

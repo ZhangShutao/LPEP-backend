@@ -1,9 +1,6 @@
 package com.kse.lpep.service;
 
-import com.kse.lpep.service.dto.ExperInfo;
-import com.kse.lpep.service.dto.PersonalResult;
-import com.kse.lpep.service.dto.TesterInfo;
-import com.kse.lpep.service.dto.UserLoginResult;
+import com.kse.lpep.service.dto.*;
 
 import java.util.List;
 
@@ -33,12 +30,12 @@ public interface IUserService {
     /**
      * 查询所有tester的个人信息
      */
-    List<TesterInfo> queryAllTester();
+    TesterInfoPage queryAllTester(int pageIndex, int pageSize);
 
     /**
      * 创建新用户
      */
-    int createNewUser(String username, String realname, int isAdmin);
+    TesterInfo createNewUser(String username, String realname, int isAdmin);
 
 //    /**
 //     * 指定id的用户是否存在，主要用来检验

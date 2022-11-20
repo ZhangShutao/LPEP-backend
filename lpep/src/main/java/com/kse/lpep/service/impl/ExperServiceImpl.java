@@ -2,13 +2,12 @@ package com.kse.lpep.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kse.lpep.mapper.*;
 import com.kse.lpep.mapper.pojo.*;
 import com.kse.lpep.service.IExperService;
-import com.kse.lpep.service.dto.ExperInfo;
-import com.kse.lpep.service.dto.NextPhaseStatusResult;
-import com.kse.lpep.service.dto.NonProgQuestionInfo;
-import com.kse.lpep.service.dto.ProgQuestionResult;
+import com.kse.lpep.service.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -162,8 +161,10 @@ public class ExperServiceImpl implements IExperService {
     }
 
     @Override
-    public List<ExperInfo> getAllExper() {
-        List<ExperInfo> experInfoList = experMapper.selectList(null).stream()
+    public ExperInfoPage getAllExper(int pageIndex, int pageSize) {
+        Page<Exper> experPage = new Page<>(pageIndex, pageSize, true);
+        IPage<Exper> experIPage = experMapper.selectPage(experPage, null);
+        List<ExperInfo> experInfoList = experIPage.getRecords().stream()
                 .map(exper ->
                 {
                     ExperInfo experInfo = new ExperInfo();
@@ -172,7 +173,9 @@ public class ExperServiceImpl implements IExperService {
                             .setStartTime(startTime);
                     return experInfo;
                 }).collect(Collectors.toList());
-        return experInfoList;
+        ExperInfoPage experInfoPage = new ExperInfoPage();
+        experInfoPage.setRecordCount((int)experIPage.getTotal()).setExperInfoList(experInfoList);
+        return experInfoPage;
     }
 
     @Override
