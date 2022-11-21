@@ -62,4 +62,14 @@ public interface IExperService {
      */
     List<String> listRunnerType();
 
+    /**
+     * 分页查询用户未参与的实验
+     */
+    ExperInfoPage queryNotInExpers(String userId, int pageIndex, int pageSize);
+
+    /**
+     * 根据实验id查询组别
+     */
+    List<GroupInfo> queryAllGroups(String experId);
+
 }

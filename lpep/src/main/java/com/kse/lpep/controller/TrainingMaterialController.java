@@ -1,19 +1,27 @@
 package com.kse.lpep.controller;
 
+import com.kse.lpep.controller.vo.BaseResponse;
 import com.kse.lpep.mapper.ITrainingMaterialMapper;
+import com.kse.lpep.service.ITrainingMaterialService;
+import com.kse.lpep.service.dto.ExperGroupInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 @RestController
 @RequestMapping("train")
 public class TrainingMaterialController {
     @Autowired
     private ITrainingMaterialMapper trainingMaterialMapper;
+    @Autowired
+    private ITrainingMaterialService trainingMaterialService;
 
 
     @GetMapping("/files/{file_id}")
@@ -28,8 +36,8 @@ public class TrainingMaterialController {
         try {
             response.setContentType("application/pdf");
             // get your file as InputStream
-            String finalPath = "/" + filePath + ".pdf";
-            InputStream is = new FileInputStream(finalPath);
+//            String finalPath = "/" + filePath + ".pdf";
+            InputStream is = new FileInputStream(filePath);
             // copy it to response's OutputStream
             org.apache.commons.io.IOUtils.copy(is, response.getOutputStream());
             response.flushBuffer();
@@ -71,6 +79,32 @@ public class TrainingMaterialController {
 //            throw new RuntimeException("IOError writing file to output stream");
 //        }
 
+    }
+
+    @GetMapping("/getexpergroup")
+    public BaseResponse<List<ExperGroupInfo>> getExperAndGroup(){
+        BaseResponse<List<ExperGroupInfo>> response = new BaseResponse<>();
+        response.setStatus(200).setMsg("返回所有实验和组别");
+        List<ExperGroupInfo> data = trainingMaterialService.queryAllExperGroup();
+        response.setData(data);
+        return response;
+    }
+
+    // 自己测试文件上传功能
+    @PostMapping("/upload")
+    public BaseResponse<String> testUpload(@RequestParam(value = "file") MultipartFile file){
+        BaseResponse<String> response = new BaseResponse<>();
+        response.setStatus(200);
+        String workspace = "c:/train";
+        try{
+            File files = new File(workspace, file.getOriginalFilename());
+            file.transferTo(files);
+            response.setMsg("上传成功");
+        }catch (IOException e){
+            response.setMsg("上传失败");
+//            e.printStackTrace();
+        }
+        return response;
     }
 
 }

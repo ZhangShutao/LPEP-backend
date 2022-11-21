@@ -9,13 +9,19 @@ import com.kse.lpep.mapper.pojo.Group;
 import com.kse.lpep.mapper.pojo.TrainingMaterial;
 import com.kse.lpep.mapper.pojo.UserGroup;
 import com.kse.lpep.service.ITrainingMaterialService;
-import com.kse.lpep.service.dto.QueryTrainingMaterialInfo;
-import com.kse.lpep.service.dto.QueryTrainingMaterialInfoPage;
-import com.kse.lpep.service.dto.TrainingMaterialInfo;
+import com.kse.lpep.service.dto.*;
+import org.apache.ibatis.javassist.bytecode.DuplicateMemberException;
+import org.apache.tomcat.util.http.fileupload.impl.SizeLimitExceededException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystemException;
+import java.nio.file.FileSystems;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -109,5 +115,89 @@ public class TrainingMaterialServiceImpl implements ITrainingMaterialService {
     @Override
     public Integer removeTrainingMaterialById(String id) {
         return trainingMaterialMapper.deleteById(id);
+    }
+
+    @Override
+    public List<ExperGroupInfo> queryAllExperGroup() {
+        List<Exper> experList = experMapper.selectList(null);
+        List<ExperGroupInfo> experGroupInfoList = experList.stream()
+                .map(exper ->
+                {
+                    QueryWrapper<Group> queryWrapper = new QueryWrapper<>();
+                    queryWrapper.eq("exper_id", exper.getId());
+                    List<Group> groupList = groupMapper.selectList(queryWrapper);
+                    List<GroupInfo> groupInfoList = groupList.stream()
+                            .map(group ->
+                            {
+                                GroupInfo groupInfo = new GroupInfo();
+                                groupInfo.setGroupId(group.getId()).setGroupName(group.getTitle());
+                                return groupInfo;
+                            }).collect(Collectors.toList());
+                    ExperGroupInfo experGroupInfo = new ExperGroupInfo();
+                    experGroupInfo.setExperId(exper.getId()).setExperName(exper.getTitle())
+                            .setGroupInfoList(groupInfoList);
+                    return experGroupInfo;
+                }).collect(Collectors.toList());
+        return experGroupInfoList;
+    }
+
+
+
+    @Override
+    public int vaildStatus(String name, String experId, String groupId) {
+        QueryWrapper<TrainingMaterial> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("title", name);
+        // 错误情况1：培训教材名存在
+        if(trainingMaterialMapper.selectOne(queryWrapper) != null){
+            return 1;
+        }
+        QueryWrapper<UserGroup> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq("exper_id", experId).eq("group_id", groupId);
+        List<UserGroup> userGroups = userGroupMapper.selectList(queryWrapper1);
+        // 错误情况2：实验名和组别名传入错误
+        if(userGroups.size() == 0){
+            return 2;
+        }
+        QueryWrapper<TrainingMaterial> queryWrapper2 = new QueryWrapper<>();
+        queryWrapper1.eq("absolute_path", experId).eq("group_id", groupId);
+        return 0;
+    }
+
+    @Override
+    public QueryTrainingMaterialInfo createTrainingMaterial(String name, String experId, String groupId,
+                                                       MultipartFile file) {
+        String fileSeparator = FileSystems.getDefault().getSeparator();
+        // 1.先插入数据库
+        Exper exper = experMapper.selectById(experId);
+        String workspace = exper.getWorkspace();
+        String savePath = workspace + fileSeparator + "training" + fileSeparator;
+        String absolutePath = savePath + file.getOriginalFilename();
+        TrainingMaterial trainingMaterial = new TrainingMaterial();
+        trainingMaterial.setGroupId(groupId).setTitle(name).setAbsolutePath(absolutePath);
+
+        QueryWrapper<TrainingMaterial> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("absolute_path", absolutePath);
+        if(trainingMaterialMapper.selectOne(queryWrapper) != null){
+            throw new NullPointerException();
+        }
+        trainingMaterialMapper.insert(trainingMaterial);
+        TrainingMaterial trainingMaterial2 = trainingMaterialMapper.selectOne(queryWrapper);
+
+        QueryTrainingMaterialInfo queryTrainingMaterialInfo = new QueryTrainingMaterialInfo();
+
+        String lastUpdateTime = new SimpleDateFormat("yyyy-MM-dd")
+                .format(trainingMaterial2.getLastUpdateTime());
+        String groupName = groupMapper.selectById(groupId).getTitle();
+        queryTrainingMaterialInfo.setId(trainingMaterial2.getId()).setTitle(name)
+                .setExperName(exper.getTitle()).setLastUpdateTime(lastUpdateTime);
+        queryTrainingMaterialInfo.setGroupName(groupName);
+        // 2.保存文件
+        try{
+            File files = new File(savePath, file.getOriginalFilename());
+            file.transferTo(files);
+        }catch (IOException  e) {
+            throw new NullPointerException();
+        }
+        return queryTrainingMaterialInfo;
     }
 }

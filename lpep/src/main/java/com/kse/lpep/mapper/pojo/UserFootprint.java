@@ -1,5 +1,6 @@
 package com.kse.lpep.mapper.pojo;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -10,6 +11,7 @@ import java.sql.Timestamp;
 @Accessors(chain = true)
 @TableName("t_user_footprint")
 public class UserFootprint {
+    @TableId
     private String id;
     private String userId;
     private String experId;

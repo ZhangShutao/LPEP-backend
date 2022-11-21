@@ -34,9 +34,8 @@ public class UserController {
             response.setStatus(200).setMsg("登录成功").setData(userLoginResult);
         }catch (NullPointerException e){
             response.setStatus(200).setMsg("登录错误");
-        }finally {
-            return response;
         }
+        return response;
     }
     @GetMapping ("/getpersonalinfo")
     public BaseResponse<PersonalResult> getPersonalInfo(String userId){
@@ -46,9 +45,9 @@ public class UserController {
             response.setStatus(200).setMsg("访问个人数据成功").setData(personalResult);
         }catch (NullPointerException e){
             response.setStatus(200).setMsg("访问个人数据失败");
-        }finally {
-            return response;
         }
+        return response;
+
     }
 
     /*
@@ -74,9 +73,8 @@ public class UserController {
         }catch (IndexOutOfBoundsException e1){
             // 情况3：用户不存在待测试的实验，考虑要不要和正常情况合并
             response.setStatus(200).setMsg("用户没有待测试的实验");
-        } finally {
-            return response;
         }
+        return response;
     }
     @GetMapping("/querypersonaltrainingmaterial")
     public BaseResponse<List<TrainingMaterialInfo>> listPersonalTrainingMaterial(String userId){
@@ -87,8 +85,7 @@ public class UserController {
             response.setData(data).setMsg("已返回个人实验培训材料");
         }catch (NullPointerException e){
             response.setMsg("数据传入错误");
-        }finally {
-            return response;
         }
+        return response;
     }
 }

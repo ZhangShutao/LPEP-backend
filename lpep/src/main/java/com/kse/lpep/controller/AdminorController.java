@@ -1,8 +1,9 @@
 package com.kse.lpep.controller;
 
-import com.kse.lpep.controller.vo.AddTesterToExperRequest;
-import com.kse.lpep.controller.vo.BaseResponse;
-import com.kse.lpep.controller.vo.CreateUserRequest;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.kse.lpep.common.exception.ExperNameDuplicateException;
+import com.kse.lpep.common.exception.InsertException;
+import com.kse.lpep.controller.vo.*;
 import com.kse.lpep.service.IAdminService;
 import com.kse.lpep.service.IExperService;
 import com.kse.lpep.service.ITrainingMaterialService;
@@ -10,7 +11,9 @@ import com.kse.lpep.service.IUserService;
 import com.kse.lpep.service.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -102,8 +105,33 @@ public class AdminorController {
     }
     // 新增培训教材
     @PostMapping("createtrainingmaterial")
-    public BaseResponse<String> createTrainingMaterial(){
-        return null;
+    public BaseResponse<QueryTrainingMaterialInfo> createTrainingMaterial(
+            @RequestParam(value = "name") String name,
+            @RequestParam(value = "experId") String experId,
+            @RequestParam(value = "groupId") String groupId,
+            @RequestParam(value = "file") MultipartFile file
+            ){
+        BaseResponse<QueryTrainingMaterialInfo> response = new BaseResponse<>();
+        QueryTrainingMaterialInfo queryTrainingMaterialInfo = new QueryTrainingMaterialInfo();
+        /*
+        1.校验：文件title存在；experId和groupId不存在或者不对应;
+         */
+        int status = trainingMaterialService.vaildStatus(name, experId, groupId);
+        if(status == 1){
+            response.setStatus(211).setMsg("该培训材料已存在");
+        }else if(status == 2){
+            response.setStatus(211).setMsg("实验名和组别传入错误");
+        }else if(status == 0){
+            try{
+                // 2.操作
+                QueryTrainingMaterialInfo data = trainingMaterialService
+                        .createTrainingMaterial(name, experId, groupId, file);
+                response.setStatus(201).setMsg("新增培训材料成功").setData(data);
+            }catch (NullPointerException e){
+                response.setStatus(211).setMsg("上传文件失败");
+            }
+        }
+        return response;
     }
 
     // 管理员分页查询tester
@@ -166,5 +194,56 @@ public class AdminorController {
         response.setData(data);
         return response;
     }
+
+    // 管理员分页查询用户未分配的实验接口（返回个人）
+    @PostMapping("getnotinexpers")
+    public BaseResponse<ExperInfoPage> getTesterNotInExpers(@RequestBody QueryNotInExperRequest request){
+        BaseResponse<ExperInfoPage> response = new BaseResponse<>();
+        response.setStatus(200).setMsg("获取用户未参与的实验");
+        ExperInfoPage data = experService.queryNotInExpers(request.getUserId(), request.getPageIndex(),
+                request.getPageSize());
+        response.setData(data);
+        return response;
+    }
+
+    // 管理员创建实验
+    @PostMapping("createexper")
+    public BaseResponse<CreateExperResult> createExper(@RequestBody CreateExperRequest request){
+        BaseResponse<CreateExperResult> response = new BaseResponse<>();
+        response.setStatus(211);
+        String finalTime = request.getStartDate()+ " " + request.getStartTime();
+//        String finalTime = request.getStartDate().substring(0, 10) + " " + request.getStartTime().substring(0, 10);
+        try{
+            CreateExperResult data = adminService.createExper(request.getCreatorId(),
+                    request.getExperName(), finalTime, request.getWorkspace(),
+                    request.getGroupInfoList(), request.getPhaseInfoList());
+            response.setStatus(201).setMsg("创建实验成功").setData(data);
+        }catch (ExperNameDuplicateException e){
+            response.setMsg(e.getMessage());
+        }catch (InsertException e1){
+            response.setMsg(e1.getMessage());
+        }
+        return response;
+    }
+
+    @PostMapping("addnonprogquestion")
+    public BaseResponse<Integer> addNonProgQuestion(@RequestBody AddNonProgQuestionRequest request){
+        BaseResponse<Integer> response = new BaseResponse<>();
+        try{
+            adminService.addQuestionTypeNonProg(request.getExperId(), request.getGroupName(),
+                    request.getPhaseNumber(), request.getAddNonProgQuestionInfoList());
+            response.setStatus(201).setData(1).setMsg("添加问题成功");
+        }catch (InsertException e){
+            response.setMsg(e.getMessage()).setStatus(211).setData(0);
+        }
+        return response;
+    }
+
+    @PostMapping("addprogquestion")
+    public BaseResponse<Integer> addProgQuestion(AddProgQuestionRequest request){
+        return null;
+    }
+
+
 
 }

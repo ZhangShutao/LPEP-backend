@@ -8,6 +8,7 @@ import com.kse.lpep.mapper.*;
 import com.kse.lpep.mapper.pojo.*;
 import com.kse.lpep.service.IExperService;
 import com.kse.lpep.service.dto.*;
+import lombok.experimental.Accessors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,8 @@ public class ExperServiceImpl implements IExperService {
     private IExperMapper experMapper;
     @Autowired
     private IRunnerMapper runnerMapper;
+    @Autowired
+    private IGroupMapper groupMapper;
 
     /*
    1. 首先判断实验是否结束，结束则修改用户做题状态
@@ -213,6 +216,34 @@ public class ExperServiceImpl implements IExperService {
         return runnerNameList;
     }
 
+    @Override
+    public ExperInfoPage queryNotInExpers(String userId, int pageIndex, int pageSize) {
+        Page<Exper> experPage = new Page<>(pageIndex, pageSize, true);
+        QueryWrapper<Exper> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("state", 0).or().eq("state", 1);
+        IPage<Exper> experIPage = experMapper.selectPage(experPage, queryWrapper);
+        List<ExperInfo> experInfoList = experIPage.getRecords().stream()
+                .filter(exper -> {
+                    QueryWrapper<UserGroup> queryWrapper1 = new QueryWrapper<>();
+                    queryWrapper1.eq("user_id", userId).eq("exper_id", exper.getId());
+                    if(userGroupMapper.selectList(queryWrapper1).size() == 0){
+                        return true;
+                    }
+                    return false;
+                })
+                .map(exper ->
+                {
+                    ExperInfo experInfo = new ExperInfo();
+                    String startTime = new SimpleDateFormat("yyyy-MM-dd").format(exper.getStartTime());
+                    experInfo.setExperId(exper.getId()).setTitle(exper.getTitle()).setState(exper.getState())
+                            .setStartTime(startTime);
+                    return experInfo;
+                }).collect(Collectors.toList());
+        ExperInfoPage experInfoPage = new ExperInfoPage();
+        experInfoPage.setRecordCount((int)experIPage.getTotal()).setExperInfoList(experInfoList);
+        return experInfoPage;
+    }
+
     private void modifyUserFootprint(String userId, String experId, Integer currentPhaseNumber,
                                      Integer currentQuestionNumber, int isEnd) {
         UpdateWrapper<UserFootprint> updateWrapper = new UpdateWrapper<>();
@@ -221,5 +252,19 @@ public class ExperServiceImpl implements IExperService {
         userFootprint.setCurrentPhaseNumber(currentPhaseNumber).setCurrentQuestionNumber(currentQuestionNumber)
                 .setIsEnd(isEnd);
         userFootprintMapper.update(userFootprint, updateWrapper);
+    }
+
+    @Override
+    public List<GroupInfo> queryAllGroups(String experId) {
+        QueryWrapper<Group> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("exper_id", experId);
+        List<GroupInfo> groupInfoList = groupMapper.selectList(queryWrapper).stream()
+                .map(group ->
+                {
+                    GroupInfo groupInfo = new GroupInfo();
+                    groupInfo.setGroupName(group.getTitle()).setGroupId(group.getId());
+                    return groupInfo;
+                }).collect(Collectors.toList());
+        return groupInfoList;
     }
 }

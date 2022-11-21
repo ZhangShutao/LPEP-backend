@@ -9,14 +9,21 @@ import com.kse.lpep.mapper.IExperMapper;
 import com.kse.lpep.mapper.IUserFootprintMapper;
 import com.kse.lpep.mapper.IUserMapper;
 import com.kse.lpep.mapper.pojo.Exper;
+import com.kse.lpep.mapper.pojo.TrainingMaterial;
 import com.kse.lpep.mapper.pojo.User;
 import com.kse.lpep.mapper.pojo.UserFootprint;
+import com.kse.lpep.service.dto.QueryTrainingMaterialInfo;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.object.UpdatableSqlQuery;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @SpringBootTest
@@ -205,4 +212,24 @@ class UserTest {
         mapIPage.getRecords().forEach(System.out::println);
     }
 
+
+    // 测试插入数据后原数据状态
+    // 测试结果，可以拿不到主键信息
+    @Test
+    void testInsertStatus(){
+        User user = new User();
+        user.setUsername("qwerf").setPassword("qwerf").setRealname("qwerf").setIsAdmin(0);
+        userMapper.insert(user);
+        System.out.println(user);
+    }
+
+
+
+    // 测试时间转换
+    @Test
+    void testTime(){
+        String startTime = "1999-08-12 15:35:54";
+        Timestamp myStartTime = Timestamp.valueOf(startTime);
+        System.out.println(myStartTime);
+    }
 }

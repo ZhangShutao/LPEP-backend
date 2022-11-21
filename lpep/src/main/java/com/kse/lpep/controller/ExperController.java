@@ -6,6 +6,7 @@ import com.kse.lpep.controller.vo.NonProgQuestionRequest;
 import com.kse.lpep.controller.vo.NextPhaseTypeRequest;
 import com.kse.lpep.controller.vo.ProgQuestionRequest;
 import com.kse.lpep.service.IExperService;
+import com.kse.lpep.service.dto.GroupInfo;
 import com.kse.lpep.service.dto.NextPhaseStatusResult;
 import com.kse.lpep.service.dto.NonProgQuestionInfo;
 import com.kse.lpep.service.dto.ProgQuestionResult;
@@ -95,6 +96,14 @@ public class ExperController {
         BaseResponse<List<String>> response = new BaseResponse<>();
         List<String> data = experService.listRunnerType();
         response.setStatus(200).setMsg("返回所有runner的名称").setData(data);
+        return response;
+    }
+
+    @GetMapping("/querygroups")
+    public BaseResponse<List<GroupInfo>> queryGroups(String experId){
+        BaseResponse<List<GroupInfo>> response = new BaseResponse<>();
+        List<GroupInfo> data = experService.queryAllGroups(experId);
+        response.setStatus(200).setData(data);
         return response;
     }
 

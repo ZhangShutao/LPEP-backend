@@ -15,5 +15,6 @@ public class NonProgQuestionInfo {
     private Integer number;
     private String options;
     private String remark;
+    // 选择还是问题
     private Integer type;
 }
