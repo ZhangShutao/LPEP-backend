@@ -5,14 +5,13 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.exceptions.MybatisPlusException;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.kse.lpep.mapper.ICaseMapper;
 import com.kse.lpep.mapper.IExperMapper;
 import com.kse.lpep.mapper.IUserFootprintMapper;
 import com.kse.lpep.mapper.IUserMapper;
-import com.kse.lpep.mapper.pojo.Exper;
-import com.kse.lpep.mapper.pojo.TrainingMaterial;
-import com.kse.lpep.mapper.pojo.User;
-import com.kse.lpep.mapper.pojo.UserFootprint;
+import com.kse.lpep.mapper.pojo.*;
 import com.kse.lpep.service.dto.QueryTrainingMaterialInfo;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -213,14 +212,17 @@ class UserTest {
     }
 
 
+    @Autowired
+    private ICaseMapper caseMapper;
     // 测试插入数据后原数据状态
-    // 测试结果，可以拿不到主键信息
+    // 测试结果，使用mp自带的方式生成uuid可以拿到主键，删除数据库中的uuid生成
     @Test
     void testInsertStatus(){
-        User user = new User();
-        user.setUsername("qwerf").setPassword("qwerf").setRealname("qwerf").setIsAdmin(0);
-        userMapper.insert(user);
-        System.out.println(user);
+        Case myCase = new Case();
+        myCase.setNumber(1);
+        int x = caseMapper.insert(myCase);
+        System.out.println(x);
+        System.out.println(myCase.getId());
     }
 
 
@@ -231,5 +233,19 @@ class UserTest {
         String startTime = "1999-08-12 15:35:54";
         Timestamp myStartTime = Timestamp.valueOf(startTime);
         System.out.println(myStartTime);
+    }
+
+    @Test
+    void testUpdate(){
+        Case myCase = new Case();
+        myCase.setId("55af1db609b36be80ad8c455fffc8b0").setProgQuestionId("171");
+        caseMapper.updateById(myCase);
+    }
+
+    @Test
+    void testStringUtil(){
+        String a = "asd";
+        String b = "asd";
+        System.out.println(StringUtils.equals(a, b));
     }
 }

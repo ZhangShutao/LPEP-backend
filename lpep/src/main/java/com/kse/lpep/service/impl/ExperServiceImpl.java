@@ -1,9 +1,11 @@
 package com.kse.lpep.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.kse.lpep.common.exception.ElementDuplicateException;
 import com.kse.lpep.mapper.*;
 import com.kse.lpep.mapper.pojo.*;
 import com.kse.lpep.service.IExperService;
@@ -13,8 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +36,8 @@ public class ExperServiceImpl implements IExperService {
     private IRunnerMapper runnerMapper;
     @Autowired
     private IGroupMapper groupMapper;
+    @Autowired
+    private ISubmitMapper submitMapper;
 
     /*
    1. 首先判断实验是否结束，结束则修改用户做题状态
@@ -97,8 +100,10 @@ public class ExperServiceImpl implements IExperService {
                 .map(question ->
                 {
                     NonProgQuestionInfo questionInfo = new NonProgQuestionInfo();
+
+                    List<String> options = JSON.parseArray(question.getOptions(), String.class);
                     questionInfo.setQuestionId(question.getId()).setContent(question.getContent())
-                            .setNumber(question.getNumber()).setOptions(question.getOptions())
+                            .setNumber(question.getNumber()).setOptions(options)
                             .setType(question.getType()).setRemark(question.getRemark());
                     return questionInfo;
                 }).collect(Collectors.toList());
@@ -220,13 +225,13 @@ public class ExperServiceImpl implements IExperService {
     public ExperInfoPage queryNotInExpers(String userId, int pageIndex, int pageSize) {
         Page<Exper> experPage = new Page<>(pageIndex, pageSize, true);
         QueryWrapper<Exper> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("state", 0).or().eq("state", 1);
+        queryWrapper.eq("state", 0).or().eq("state", 2);
         IPage<Exper> experIPage = experMapper.selectPage(experPage, queryWrapper);
         List<ExperInfo> experInfoList = experIPage.getRecords().stream()
                 .filter(exper -> {
                     QueryWrapper<UserGroup> queryWrapper1 = new QueryWrapper<>();
                     queryWrapper1.eq("user_id", userId).eq("exper_id", exper.getId());
-                    if(userGroupMapper.selectList(queryWrapper1).size() == 0){
+                    if(userGroupMapper.selectList(queryWrapper1).size() != 0){
                         return true;
                     }
                     return false;
@@ -266,5 +271,30 @@ public class ExperServiceImpl implements IExperService {
                     return groupInfo;
                 }).collect(Collectors.toList());
         return groupInfoList;
+    }
+
+    @Override
+    public String submitNonProg(String userId, List<UserAnswerDto> answers) {
+        QueryWrapper<Submit> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId);
+        if(submitMapper.selectList(queryWrapper).size() != 0){
+            throw new ElementDuplicateException("提交用户存在，提交错误");
+        }
+        // 去重
+        Set<String> idSet = new HashSet<>();
+        for(UserAnswerDto u : answers){
+            if(idSet.contains(u.getQuestionId())){
+                throw new ElementDuplicateException("提交题号重复");
+            }
+            idSet.add(u.getQuestionId());
+        }
+        // 入库
+        answers.stream().forEach(u->
+        {
+            Submit submit = new Submit();
+            submit.setUserId(userId).setQuestionId(u.getQuestionId()).setUserAnswer(u.getReply());
+            submitMapper.insert(submit);
+        });
+        return userId;
     }
 }

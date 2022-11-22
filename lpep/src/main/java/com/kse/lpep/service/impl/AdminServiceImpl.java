@@ -1,7 +1,8 @@
 package com.kse.lpep.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.kse.lpep.common.exception.ExperNameDuplicateException;
+import com.kse.lpep.common.exception.ElementDuplicateException;
 import com.kse.lpep.common.exception.InsertException;
 import com.kse.lpep.controller.vo.AddNonProgQuestionInfo;
 import com.kse.lpep.controller.vo.CreateGroupInfo;
@@ -9,9 +10,8 @@ import com.kse.lpep.controller.vo.CreatePhaseInfo;
 import com.kse.lpep.mapper.*;
 import com.kse.lpep.mapper.pojo.*;
 import com.kse.lpep.service.IAdminService;
+import com.kse.lpep.service.dto.AddProgQuestionDto;
 import com.kse.lpep.service.dto.CreateExperResult;
-import com.kse.lpep.service.dto.ExperInfo;
-import com.kse.lpep.service.dto.NonProgQuestionInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +32,10 @@ public class AdminServiceImpl implements IAdminService {
     private IPhaseMapper phaseMapper;
     @Autowired
     private IQuestionMapper questionMapper;
+    @Autowired
+    private IProgQuestionMapper progQuestionMapper;
+    @Autowired
+    private ICaseMapper caseMapper;
     /*
      * 1.判断userId是否存在
      * 2.判断experId和groupId是否对应
@@ -62,7 +66,7 @@ public class AdminServiceImpl implements IAdminService {
         QueryWrapper<Exper> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("title", experName);
         if(experMapper.selectOne(queryWrapper) != null){
-            throw new ExperNameDuplicateException("该实验名称重复");
+            throw new ElementDuplicateException("该实验名称重复");
         }
         Exper exper = new Exper();
         Timestamp myStartTime = Timestamp.valueOf(startTime);
@@ -97,6 +101,10 @@ public class AdminServiceImpl implements IAdminService {
                 throw new InsertException("实验数据插入错误");
             }
         });
+//        QueryWrapper<Group> queryWrapper1 = new QueryWrapper<>();
+//        queryWrapper1.eq("exper_id", experId);
+//        List<String> groupIds = groupMapper.selectList(queryWrapper1).stream()
+//                .map(Group::getId).collect(Collectors.toList());
         CreateExperResult createExperResult = new CreateExperResult();
         createExperResult.setExperId(experId).setExperName(myReturnExper.getTitle())
                 .setStartTime(startTime).setStatus(0);
@@ -104,7 +112,7 @@ public class AdminServiceImpl implements IAdminService {
     }
 
     @Override
-    public int addQuestionTypeNonProg(String experId, String groupName, String phaseNumber,
+    public int addQuestionTypeNonProg(String experId, String groupName, int phaseNumber,
                                           List<AddNonProgQuestionInfo> addNonProgQuestionInfoList) {
         QueryWrapper<Group> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("exper_id", experId).eq("title", groupName);
@@ -123,11 +131,53 @@ public class AdminServiceImpl implements IAdminService {
                         throw new InsertException("问题插入重复");
                     }
                     Question question = new Question();
+                    String options = JSON.toJSONString(myItem.getOptions());
                     question.setPhaseId(phaseId).setNumber(myItem.getNumber()).setContent(myItem.getContent())
-                            .setOptions(myItem.getOptions()).setAnswer(myItem.getAnswer()).setGroupId(groupId)
+                            .setOptions(options).setAnswer(myItem.getAnswer()).setGroupId(groupId)
                             .setExperId(experId).setType(myItem.getType());
                     questionMapper.insert(question);
                 });
+        return 1;
+    }
+
+    @Override
+    public int addQuestionTypeProg(AddProgQuestionDto reqDto, List<String> caseIds) {
+        try {
+            // 1.获取组别id和阶段id
+            QueryWrapper<Group> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq("exper_id", reqDto.getExperId()).eq("title", reqDto.getGroupName());
+            String groupId = groupMapper.selectOne(queryWrapper).getId();
+            QueryWrapper<Phase> queryWrapper1 = new QueryWrapper<>();
+            queryWrapper1.eq("exper_id", reqDto.getExperId())
+                    .eq("phase_number", reqDto.getPhaseNumber());
+            String phaseId = phaseMapper.selectOne(queryWrapper1).getId();
+
+            // 2.验证该题号是否存在
+            QueryWrapper<ProgQuestion> queryWrapper2 = new QueryWrapper<>();
+            queryWrapper2.eq("phase_id", phaseId).eq("number", reqDto.getQuestionNumber())
+                    .eq("group_id", groupId);
+            if(progQuestionMapper.selectOne(queryWrapper2) != null){
+                throw new ElementDuplicateException("问题插入重复");
+            }
+            ProgQuestion progQuestion = new ProgQuestion();
+            progQuestion.setPhaseId(phaseId).setNumber(reqDto.getQuestionNumber()).setContent(reqDto.getContent())
+                    .setGroupId(groupId).setExperId(reqDto.getExperId()).setRunnerId(reqDto.getRunnerId())
+                    .setTimeLimit(reqDto.getTimeLimit()).setRuntimeLimit(reqDto.getRuntimeLimit());
+            progQuestionMapper.insert(progQuestion);
+            // 3.更新case表
+            String progQuestionId = progQuestion.getId();
+            caseIds.stream().forEach(caseId->
+            {
+                if(caseMapper.selectById(caseId) == null){
+                    throw new NullPointerException("caseId列表传入错误");
+                }
+                Case myCase = new Case();
+                myCase.setId(caseId).setProgQuestionId(progQuestionId);
+                caseMapper.updateById(myCase);
+            });
+        }catch (NullPointerException e){
+            throw new NullPointerException("实验id，组别名，阶段编号传入错误");
+        }
         return 1;
     }
 }

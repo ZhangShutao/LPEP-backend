@@ -1,7 +1,6 @@
 package com.kse.lpep.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.kse.lpep.common.exception.ExperNameDuplicateException;
+import com.kse.lpep.common.exception.ElementDuplicateException;
 import com.kse.lpep.common.exception.InsertException;
 import com.kse.lpep.controller.vo.*;
 import com.kse.lpep.service.IAdminService;
@@ -12,9 +11,6 @@ import com.kse.lpep.service.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
 
 @RestController
 @RequestMapping("admin")
@@ -70,11 +66,7 @@ public class AdminorController {
         }
     }
 
-    // 实验分析和实验创建后面再说
-//    @PostMapping("/createexper")
-//    public BaseResponse<Integer> createExper(CreateExperRequest request){
-//
-//    }
+
     // 列举所有培训教材
     @GetMapping("listalltrainingmaterial")
     public BaseResponse<QueryTrainingMaterialInfoPage> listAllTrainingMaterial(int pageIndex, int pageSize){
@@ -211,14 +203,14 @@ public class AdminorController {
     public BaseResponse<CreateExperResult> createExper(@RequestBody CreateExperRequest request){
         BaseResponse<CreateExperResult> response = new BaseResponse<>();
         response.setStatus(211);
-        String finalTime = request.getStartDate()+ " " + request.getStartTime();
+//        String finalTime = request.getStartDate()+ " " + request.getStartTime();
 //        String finalTime = request.getStartDate().substring(0, 10) + " " + request.getStartTime().substring(0, 10);
         try{
             CreateExperResult data = adminService.createExper(request.getCreatorId(),
-                    request.getExperName(), finalTime, request.getWorkspace(),
+                    request.getExperName(), request.getStartTime(), request.getWorkspace(),
                     request.getGroupInfoList(), request.getPhaseInfoList());
             response.setStatus(201).setMsg("创建实验成功").setData(data);
-        }catch (ExperNameDuplicateException e){
+        }catch (ElementDuplicateException e){
             response.setMsg(e.getMessage());
         }catch (InsertException e1){
             response.setMsg(e1.getMessage());
@@ -232,16 +224,28 @@ public class AdminorController {
         try{
             adminService.addQuestionTypeNonProg(request.getExperId(), request.getGroupName(),
                     request.getPhaseNumber(), request.getAddNonProgQuestionInfoList());
-            response.setStatus(201).setData(1).setMsg("添加问题成功");
+            response.setStatus(201).setMsg("添加问题成功");
         }catch (InsertException e){
-            response.setMsg(e.getMessage()).setStatus(211).setData(0);
+            response.setMsg(e.getMessage()).setStatus(211);
         }
         return response;
     }
 
     @PostMapping("addprogquestion")
-    public BaseResponse<Integer> addProgQuestion(AddProgQuestionRequest request){
-        return null;
+    public BaseResponse<Integer> addProgQuestion(AddProgQuestionRequest req){
+        BaseResponse<Integer> response = new BaseResponse<>();
+        AddProgQuestionDto addProgQuestionDto = new AddProgQuestionDto();
+        addProgQuestionDto.setQuestionNumber(req.getQuestionNumber()).setPhaseNumber(req.getPhaseNumber())
+                .setContent(req.getContent()).setExperId(req.getExperId()).setGroupName(req.getGroupName())
+                .setRuntimeLimit(req.getRuntimeLimit()).setTimeLimit(req.getTimeLimit())
+                .setRunnerId(req.getRunnerId());
+        try{
+            int data = adminService.addQuestionTypeProg(addProgQuestionDto, req.getCaseIds());
+            response.setStatus(201).setData(data);
+        }catch (NullPointerException | ElementDuplicateException e){
+            response.setStatus(211).setMsg(e.getMessage()).setStatus(0);
+        }
+        return response;
     }
 
 

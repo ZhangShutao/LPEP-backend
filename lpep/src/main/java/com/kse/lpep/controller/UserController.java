@@ -1,5 +1,7 @@
 package com.kse.lpep.controller;
 
+import com.kse.lpep.common.exception.SaveFileIOException;
+import com.kse.lpep.common.utility.SavingFile;
 import com.kse.lpep.controller.vo.BaseResponse;
 import com.kse.lpep.controller.vo.UserLoginRequest;
 import com.kse.lpep.service.ITrainingMaterialService;
@@ -10,6 +12,7 @@ import com.kse.lpep.service.dto.TrainingMaterialInfo;
 import com.kse.lpep.service.dto.UserLoginResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import java.util.List;
@@ -87,5 +90,21 @@ public class UserController {
             response.setMsg("数据传入错误");
         }
         return response;
+    }
+
+    @PostMapping("/testfile")
+    public BaseResponse<String> testFile(
+            @RequestParam(value = "file") MultipartFile file
+            ){
+        BaseResponse<String> resp = new BaseResponse<>();
+        String saveName = "1.txt";
+        String savePath = "c:/test";
+        try {
+            SavingFile.saveFile(file, saveName, savePath);
+            resp.setStatus(203);
+        }catch (NullPointerException | SaveFileIOException e){
+            resp.setStatus(213).setMsg(e.getMessage());
+        }
+        return resp;
     }
 }

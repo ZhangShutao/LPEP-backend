@@ -1,17 +1,19 @@
 package com.kse.lpep.controller;
 
 
-import com.kse.lpep.controller.vo.BaseResponse;
-import com.kse.lpep.controller.vo.NonProgQuestionRequest;
-import com.kse.lpep.controller.vo.NextPhaseTypeRequest;
-import com.kse.lpep.controller.vo.ProgQuestionRequest;
+import com.kse.lpep.common.exception.ElementDuplicateException;
+import com.kse.lpep.common.exception.FrontEndDataException;
+import com.kse.lpep.common.exception.SaveFileIOException;
+import com.kse.lpep.controller.vo.*;
 import com.kse.lpep.service.IExperService;
+import com.kse.lpep.service.IQuestionService;
 import com.kse.lpep.service.dto.GroupInfo;
 import com.kse.lpep.service.dto.NextPhaseStatusResult;
 import com.kse.lpep.service.dto.NonProgQuestionInfo;
 import com.kse.lpep.service.dto.ProgQuestionResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,6 +22,8 @@ import java.util.List;
 public class ExperController {
     @Autowired
     private IExperService experService;
+    @Autowired
+    private IQuestionService questionService;
 
     /*
     获取下一阶段问题类型，并判断实验是否结束
@@ -107,6 +111,49 @@ public class ExperController {
         return response;
     }
 
+    /*
+    获取caseid创建测试，需要传入测试顺序，第几个测试
+    这个id需要存储在前端，后面一起给问题创建接口
+     */
+    @GetMapping("/getcaseid")
+    public BaseResponse<String> getCaseId(Integer number){
+        BaseResponse<String> response = new BaseResponse<>();
+        String data = questionService.acquireCaseId(number);
+        response.setStatus(200).setData(data);
+        return response;
+    }
 
+    /*
+    上传测试文件并返回文件名
+     */
+    @PostMapping("/uploadtestfile")
+    public BaseResponse<String> uploadTestFile(
+            @RequestParam(value = "isInput") Integer isInput,
+            @RequestParam(value = "caseId") String caseId,
+            @RequestParam(value = "experId") String experId,
+            @RequestParam(value = "groupId") String groupId,
+            @RequestParam(value = "file")MultipartFile file
+            ){
+        BaseResponse<String> response = new BaseResponse<>();
+        try{
+            String data = questionService.uploadExperTestFile(isInput, caseId, experId, groupId, file);
+            response.setStatus(203).setMsg("上传成功").setData(data);
+        }catch (FrontEndDataException | NullPointerException | SaveFileIOException e){
+            response.setStatus(213).setMsg(e.getMessage());
+        }
+        return response;
+    }
+
+    @PostMapping("/nonprogsubmit")
+    public BaseResponse<String> nonProgSubmit(@RequestBody NonProgSubmitRequest request){
+        BaseResponse<String> response = new BaseResponse<>();
+        try{
+            String data = experService.submitNonProg(request.getUserId(), request.getAnswers());
+            response.setStatus(205).setMsg("用户提交非编程问题成功").setData(data);
+        }catch (ElementDuplicateException e) {
+            response.setStatus(215).setMsg("用户提交非编程问题失败");
+        }
+        return response;
+    }
 
 }

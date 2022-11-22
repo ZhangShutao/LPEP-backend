@@ -3,6 +3,8 @@ package com.kse.lpep.service.dto;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.util.List;
+
 /**
  * 封装非编程问题
  */
@@ -13,7 +15,7 @@ public class NonProgQuestionInfo {
     private String content;
     // 按照题号进行排序
     private Integer number;
-    private String options;
+    private List<String> options;
     private String remark;
     // 选择还是问题
     private Integer type;

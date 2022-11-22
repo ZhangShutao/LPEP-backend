@@ -1,5 +1,6 @@
 package com.kse.lpep.mapper.pojo;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -11,7 +12,7 @@ import java.sql.Timestamp;
 @Accessors(chain = true)
 @TableName("t_prog_question")
 public class ProgQuestion {
-    @TableId
+    @TableId(type = IdType.ASSIGN_UUID)
     private String id;
     private String phaseId;
     private Integer number;

@@ -72,4 +72,9 @@ public interface IExperService {
      */
     List<GroupInfo> queryAllGroups(String experId);
 
+    /*
+    非编程题提交
+     */
+    String submitNonProg(String userId, List<UserAnswerDto> answers);
+
 }

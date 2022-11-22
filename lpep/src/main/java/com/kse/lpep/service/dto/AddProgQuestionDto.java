@@ -1,11 +1,11 @@
-package com.kse.lpep.controller.vo;
+package com.kse.lpep.service.dto;
 
 import lombok.Data;
-
-import java.util.List;
+import lombok.experimental.Accessors;
 
 @Data
-public class AddProgQuestionRequest {
+@Accessors(chain = true)
+public class AddProgQuestionDto {
     private String experId;
     private String groupName;
     private Integer phaseNumber;
@@ -14,5 +14,4 @@ public class AddProgQuestionRequest {
     private Integer timeLimit;
     private String runnerId;
     private Integer runtimeLimit;
-    List<String> caseIds;
 }

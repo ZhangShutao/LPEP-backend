@@ -9,6 +9,6 @@ import java.util.List;
 public class AddNonProgQuestionRequest {
     private String experId;
     private String groupName;
-    private String phaseNumber;
+    private Integer phaseNumber;
     List<AddNonProgQuestionInfo> addNonProgQuestionInfoList;
 }
