@@ -11,11 +11,16 @@ import com.kse.lpep.service.dto.PersonalResult;
 import com.kse.lpep.service.dto.TrainingMaterialInfo;
 import com.kse.lpep.service.dto.UserLoginResult;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 
+import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @RestController  // json数据进行交互
@@ -27,10 +32,18 @@ public class UserController {
     private ITrainingMaterialService trainingMaterialService;
 
     @PostMapping("/login")
-    public BaseResponse<UserLoginResult> userLogin(@RequestBody UserLoginRequest request){
+    public BaseResponse<Object> userLogin(@RequestBody @Valid UserLoginRequest request,
+                                                   BindingResult bindingResult){
+        BaseResponse<Object> response = new BaseResponse<>();
+        if(bindingResult.hasErrors()){
+            List<String> errorMessageList = bindingResult.getAllErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
+            response.setData(errorMessageList).setStatus(300);
+            return response;
+        }
         // 使用该注解后，前端的json格式request请求才可以正常运行，但是postman中的from-data不行
         // postman使用raw的json格式可以访问，只有post请求才使用该注解
-        BaseResponse<UserLoginResult> response = new BaseResponse<>();
+
         try{
             UserLoginResult userLoginResult = userService.userLogin(request.getUsername(),
                     request.getPassword());
@@ -107,4 +120,8 @@ public class UserController {
         }
         return resp;
     }
+
+
+
+
 }

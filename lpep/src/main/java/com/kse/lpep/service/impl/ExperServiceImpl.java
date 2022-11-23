@@ -221,21 +221,23 @@ public class ExperServiceImpl implements IExperService {
         return runnerNameList;
     }
 
+    // 管理员分页查询用户未参与的实验
     @Override
     public ExperInfoPage queryNotInExpers(String userId, int pageIndex, int pageSize) {
+        QueryWrapper<UserGroup> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("user_id", userId);
+        List<String> experIds = userGroupMapper.selectList(queryWrapper).stream()
+                .map(UserGroup::getExperId).collect(Collectors.toList());
+        QueryWrapper<Exper> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq("state", 0).or().eq("state", 2);
+        if(experIds.size() != 0) {
+            queryWrapper1.notIn("id", experIds);
+        }
+
         Page<Exper> experPage = new Page<>(pageIndex, pageSize, true);
-        QueryWrapper<Exper> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("state", 0).or().eq("state", 2);
-        IPage<Exper> experIPage = experMapper.selectPage(experPage, queryWrapper);
+
+        IPage<Exper> experIPage = experMapper.selectPage(experPage, queryWrapper1);
         List<ExperInfo> experInfoList = experIPage.getRecords().stream()
-                .filter(exper -> {
-                    QueryWrapper<UserGroup> queryWrapper1 = new QueryWrapper<>();
-                    queryWrapper1.eq("user_id", userId).eq("exper_id", exper.getId());
-                    if(userGroupMapper.selectList(queryWrapper1).size() != 0){
-                        return true;
-                    }
-                    return false;
-                })
                 .map(exper ->
                 {
                     ExperInfo experInfo = new ExperInfo();

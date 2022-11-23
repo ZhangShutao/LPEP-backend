@@ -248,4 +248,24 @@ class UserTest {
         String b = "asd";
         System.out.println(StringUtils.equals(a, b));
     }
+
+    // 测试查询条件中加入不等于某个结合这个条件
+    // 测试成功，但是eq条件放前面，notin放后面
+    // notin需要size不为0
+    @Test
+    void testNotIn(){
+        List<String> experIds = new ArrayList<>();
+//        experIds.add("34f6879f61c911edab7a2cf05decb14f");
+//        experIds.add("f4190480625811edab7a2cf05decb14g");
+        QueryWrapper<Exper> queryWrapper1 = new QueryWrapper<>();
+        queryWrapper1.eq("state", 0).or().eq("state", 2);
+        if(experIds.size() != 0){
+            queryWrapper1.notIn("id", experIds);
+        }
+
+
+
+        List<Exper> expers = experMapper.selectList(queryWrapper1);
+        expers.stream().forEach(exper ->  System.out.println(exper));
+    }
 }
