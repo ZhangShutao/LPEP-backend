@@ -28,8 +28,8 @@ public class AdminorController {
 
     // 管理员分页查询所有实验
     @GetMapping("/listallexper")
-    public BaseResponse<ExperInfoPage> listAllExper(int pageIndex, int pageSize){
-        BaseResponse<ExperInfoPage> response = new BaseResponse<>();
+    public BaseResponse listAllExper(int pageIndex, int pageSize){
+        BaseResponse response = new BaseResponse();
         ExperInfoPage data = experService.getAllExper(pageIndex, pageSize);
         response.setStatus(200).setMsg("管理员查询所有实验数据").setData(data);
         return response;
@@ -38,8 +38,8 @@ public class AdminorController {
     // 情况1：该实验已经结束，数据传输错误
     // 情况2：正常情况
     @GetMapping("/startexper")
-    public BaseResponse<Integer> startExper(String experId){
-        BaseResponse<Integer> response = new BaseResponse<>();
+    public BaseResponse startExper(String experId){
+        BaseResponse response = new BaseResponse();
         response.setStatus(200);
         try{
             int currentStatus = experService.queryExperCurrentStatus(experId);
@@ -53,8 +53,8 @@ public class AdminorController {
     }
 
     @GetMapping("/endexper")
-    public BaseResponse<Integer> endExper(String experId){
-        BaseResponse<Integer> response = new BaseResponse<>();
+    public BaseResponse endExper(String experId){
+        BaseResponse response = new BaseResponse();
         response.setStatus(200);
         try{
             int currentStatus = experService.queryExperCurrentStatus(experId);
@@ -74,8 +74,8 @@ public class AdminorController {
 //    }
     // 列举所有培训教材
     @GetMapping("listalltrainingmaterial")
-    public BaseResponse<QueryTrainingMaterialInfoPage> listAllTrainingMaterial(int pageIndex, int pageSize){
-        BaseResponse<QueryTrainingMaterialInfoPage> response = new BaseResponse<>();
+    public BaseResponse listAllTrainingMaterial(int pageIndex, int pageSize){
+        BaseResponse response = new BaseResponse();
         response.setStatus(200);
         try{
             QueryTrainingMaterialInfoPage data = trainingMaterialService.queryAllMaterialInfo(pageIndex, pageSize);
@@ -89,8 +89,8 @@ public class AdminorController {
 
     // 删除指定的培训教材
     @GetMapping("deletetrainingmaterial")
-    public BaseResponse<Integer> deleteTrainingMaterialById(String id){
-        BaseResponse<Integer> response = new BaseResponse<>();
+    public BaseResponse deleteTrainingMaterialById(String id){
+        BaseResponse response = new BaseResponse();
         response.setStatus(204);
         int status = trainingMaterialService.removeTrainingMaterialById(id);
         if(status == 1){
@@ -102,14 +102,14 @@ public class AdminorController {
     }
     // 新增培训教材
     @PostMapping("createtrainingmaterial")
-    public BaseResponse<String> createTrainingMaterial(){
+    public BaseResponse createTrainingMaterial(){
         return null;
     }
 
     // 管理员分页查询tester
     @GetMapping("listalltester")
-    public BaseResponse<TesterInfoPage> listAllTester(int pageIndex, int pageSize){
-        BaseResponse<TesterInfoPage> response = new BaseResponse<>();
+    public BaseResponse listAllTester(int pageIndex, int pageSize){
+        BaseResponse response = new BaseResponse();
         response.setStatus(200).setMsg("列举所有参试人员的信息");
         TesterInfoPage data = userService.queryAllTester(pageIndex, pageSize);
         response.setData(data);
@@ -128,8 +128,8 @@ public class AdminorController {
 
     // 管理员创建新用户
     @PostMapping("createuser")
-    public BaseResponse<TesterInfo> createUser(@RequestBody CreateUserRequest request){
-        BaseResponse<TesterInfo> response = new BaseResponse<>();
+    public BaseResponse createUser(@RequestBody CreateUserRequest request){
+        BaseResponse response = new BaseResponse();
         response.setStatus(201);
         TesterInfo testerInfo = userService.createNewUser(request.getUsername(),
                 request.getRealname(), request.getIsAdmin());
@@ -143,8 +143,8 @@ public class AdminorController {
 
     // 管理员删除用户
     @GetMapping("deletetester")
-    public BaseResponse<Integer> deleteTester(String userId){
-        BaseResponse<Integer> response = new BaseResponse<>();
+    public BaseResponse deleteTester(String userId){
+        BaseResponse response = new BaseResponse();
         response.setStatus(204).setMsg("删除成功");
         int data = userService.deleteUser(userId);
         if(data == 0){
@@ -156,8 +156,8 @@ public class AdminorController {
 
     // 管理员添加用户到某个实验某个组
     @PostMapping("addtestertoexper")
-    public BaseResponse<Integer> addTesterToExper(@RequestBody AddTesterToExperRequest request){
-        BaseResponse<Integer> response = new BaseResponse<>();
+    public BaseResponse addTesterToExper(@RequestBody AddTesterToExperRequest request){
+        BaseResponse response = new BaseResponse();
         int data = adminService.addTesterToExper(request.getUserId(), request.getExperId(), request.getGroupId());
         response.setStatus(200).setMsg("添加成功");
         if(data == 0){
