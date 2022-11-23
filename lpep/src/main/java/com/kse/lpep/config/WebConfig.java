@@ -1,8 +1,10 @@
 package com.kse.lpep.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -42,6 +44,7 @@ public class WebConfig implements WebMvcConfigurer {
     }
 
     @Bean(name = THREAD_POOL)
+    @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
     public ThreadPoolTaskExecutor threadPool() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(1);

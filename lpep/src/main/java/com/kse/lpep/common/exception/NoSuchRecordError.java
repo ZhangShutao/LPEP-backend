@@ -1,4 +1,4 @@
-package com.kse.lpep.service.exception;
+package com.kse.lpep.common.exception;
 
 /**
  * 自定义异常，表示操作对应的记录在数据库中不存在

@@ -24,8 +24,8 @@ public class SubmitController {
      * @see ProgramSubmitRequest
      * @see JudgeResult
      */
-    public BaseResponse<JudgeResult> submitProgram(@RequestBody ProgramSubmitRequest request) {
-        return new BaseResponse<>();
+    public BaseResponse submitProgram(@RequestBody ProgramSubmitRequest request) {
+        return new BaseResponse();
     }
 
     /**
@@ -33,8 +33,8 @@ public class SubmitController {
      * @param request 用户请求
      * @return 请求执行结果
      */
-    public BaseResponse<String> abortProgram(@RequestBody AbortProblemRequest request) {
-        return new BaseResponse<>();
+    public BaseResponse abortProgram(@RequestBody AbortProblemRequest request) {
+        return new BaseResponse();
     }
 
     /**
@@ -42,7 +42,7 @@ public class SubmitController {
      * @param request 用户请求
      * @return 请求执行结果
      */
-    public BaseResponse<String> submitQuestionnaire(@RequestBody QuestionnaireSubmitRequest request) {
-        return new BaseResponse<>();
+    public BaseResponse submitQuestionnaire(@RequestBody QuestionnaireSubmitRequest request) {
+        return new BaseResponse();
     }
 }
