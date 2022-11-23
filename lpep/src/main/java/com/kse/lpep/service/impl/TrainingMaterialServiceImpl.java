@@ -47,7 +47,7 @@ public class TrainingMaterialServiceImpl implements ITrainingMaterialService {
     @Override
     public List<TrainingMaterialInfo> listPersonalTextbook(String userId) {
         if(userMapper.selectById(userId) == null){
-            throw new NullPointerException();
+            throw new NullPointerException("用户不存在");
         }
         QueryWrapper<UserGroup> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
@@ -69,14 +69,13 @@ public class TrainingMaterialServiceImpl implements ITrainingMaterialService {
                         TrainingMaterial trainingMaterial = trainingMaterialMapper.selectOne(queryWrapper1);
                         String lastUpdateTime = new SimpleDateFormat("yyyy-MM-dd")
                                 .format(trainingMaterial.getLastUpdateTime());
-
                         trainingMaterialInfo.setId(trainingMaterial.getId()).setTitle(trainingMaterial.getTitle())
                                 .setExperName(experTitle).setLastUpdateTime(lastUpdateTime);
                         return trainingMaterialInfo;
                     }).collect(Collectors.toList());
             return trainingMaterialInfos;
         }catch (NullPointerException e){
-            throw new NullPointerException();
+            throw new NullPointerException("用户分组错误或培训材料错误");
         }
     }
 

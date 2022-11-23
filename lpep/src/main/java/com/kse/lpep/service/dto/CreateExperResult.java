@@ -12,4 +12,5 @@ public class CreateExperResult {
     private String experName;
     private String startTime;
     private Integer status;
+    private List<GroupInfo> groups;
 }

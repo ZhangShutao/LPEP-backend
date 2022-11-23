@@ -5,12 +5,14 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 @Data
 @Accessors(chain = true)
 @TableName("t_exper")
-public class Exper {
+public class Exper implements Serializable {
+    private static final long serialVersionUID = -4973091903659148957L;
     @TableId
     private String id;
     private String title;

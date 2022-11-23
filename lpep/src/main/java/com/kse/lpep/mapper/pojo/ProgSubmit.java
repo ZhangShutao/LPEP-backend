@@ -5,12 +5,14 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 @Data
 @Accessors(chain = true)
 @TableName("t_prog_submit")
-public class ProgSubmit {
+public class ProgSubmit implements Serializable {
+    private static final long serialVersionUID = 5665552944925643191L;
     @TableId
     private String id;
     private String userId;

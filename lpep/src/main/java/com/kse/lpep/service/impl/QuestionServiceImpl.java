@@ -9,10 +9,12 @@ import com.kse.lpep.mapper.IExperMapper;
 import com.kse.lpep.mapper.IGroupMapper;
 import com.kse.lpep.mapper.IUserGroupMapper;
 import com.kse.lpep.mapper.pojo.Case;
+import com.kse.lpep.mapper.pojo.Exper;
 import com.kse.lpep.mapper.pojo.Group;
 import com.kse.lpep.mapper.pojo.UserGroup;
 import com.kse.lpep.service.IQuestionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,6 +29,10 @@ public class QuestionServiceImpl implements IQuestionService {
     @Autowired
     private ICaseMapper caseMapper;
 
+    // 读配置文件
+    @Value("${prefixPath}")
+    private String prePath;
+
     @Override
     public String acquireCaseId(int number) {
         Case myCase = new Case();
@@ -38,22 +44,29 @@ public class QuestionServiceImpl implements IQuestionService {
     @Override
     public String uploadExperTestFile(int isInput, String caseId, String experId, String groupId, MultipartFile file) {
         // 1.校验实验id，组别id和caseId是否正确
-        QueryWrapper<Group> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("id", groupId).eq("exper_id", experId);
-//        Case myCase = caseMapper.selectById(caseId);
-        if(groupMapper.selectOne(queryWrapper) == null || caseMapper.selectById(caseId) == null){
-            throw new FrontEndDataException("前端实验id，组别id，caseId传入错误");
-        }
+//        QueryWrapper<Group> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.eq("id", groupId).eq("exper_id", experId);
+//        if(groupMapper.selectOne(queryWrapper) == null || caseMapper.selectById(caseId) == null){
+//            throw new FrontEndDataException("前端实验id，组别id，caseId传入错误");
+//        }
 
         // 2.上传文件
         String fileSeparator = FileSystems.getDefault().getSeparator();
-        String absolutePath = experMapper.selectById(experId).getWorkspace() + fileSeparator + "test" + fileSeparator;
+        // absolutePath为保存的实验名字
+        String absolutePath = experMapper.selectById(experId).getWorkspace() + fileSeparator
+                + "test" + fileSeparator;
         String saveName = "";
+
+        // 这里的C后面要替换成linux的某个目录，最好放在属性中配置
+        System.out.println(prePath);
+        absolutePath = prePath + fileSeparator + absolutePath;
+
+//        absolutePath = "c:" + fileSeparator + absolutePath;
         if(isInput == 1){
-            absolutePath = absolutePath + fileSeparator + "input";
+            absolutePath = absolutePath + "input";
             saveName = caseId + ".in";
         }else{
-            absolutePath = absolutePath + fileSeparator + "std-out";
+            absolutePath = absolutePath + "std-out";
             saveName = caseId + ".out";
         }
         try {

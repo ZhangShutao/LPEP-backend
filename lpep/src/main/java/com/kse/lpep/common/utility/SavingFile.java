@@ -22,7 +22,7 @@ public class SavingFile {
             File files = new File(savePath, saveName);
             File parentFile = files.getParentFile();
             if(!parentFile.exists()){
-                parentFile.mkdir();
+                parentFile.mkdirs();
             }
             file.transferTo(files);
         }catch (IOException e){

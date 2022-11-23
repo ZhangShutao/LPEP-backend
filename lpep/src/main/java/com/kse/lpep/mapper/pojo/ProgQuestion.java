@@ -6,12 +6,14 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.io.Serializable;
 import java.sql.Timestamp;
 
 @Data
 @Accessors(chain = true)
 @TableName("t_prog_question")
-public class ProgQuestion {
+public class ProgQuestion implements Serializable {
+    private static final long serialVersionUID = 1875116180874736811L;
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
     private String phaseId;

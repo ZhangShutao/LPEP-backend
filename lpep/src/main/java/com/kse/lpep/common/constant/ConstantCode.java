@@ -3,7 +3,7 @@ package com.kse.lpep.common.constant;
 /**
  * 自定义的状态码
  */
-public class ConstantResponseCode {
+public class ConstantCode {
     // 查询请求成功与失败
     public static final int QUERY_SUCCESS = 200;
     public static final int QUERY_FAIL = 210;
@@ -16,6 +16,12 @@ public class ConstantResponseCode {
     // 删除成功与失败
     public static final int DELETE_SUCCESS = 204;
     public static final int DELETE_FAIL = 214;
+    // 用户提交成功与失败
+    public static final int SUBMIT_SUCCESS = 205;
+    public static final int SUBMIT_FAIL = 214;
+
+    // 传入数据校验失败
+    public static final int VALID_FAIL = 300;
 
 
 

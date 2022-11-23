@@ -10,9 +10,10 @@ import javax.validation.constraints.Size;
 @Data
 public class UserLoginRequest {
     @NotBlank(message = "用户账号不能为空")
-    @Size(max=32, min=1)
+    @Size(max=32, min=1, message = "用户账号字符数在1-32之间")
     private String username;
 
     @NotBlank(message = "用户密码不能为空")
     private String password;
+
 }

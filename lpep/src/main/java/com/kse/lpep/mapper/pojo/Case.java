@@ -12,7 +12,8 @@ import java.io.Serializable;
 @Accessors(chain = true)
 @TableName("t_case")
 public class Case implements Serializable {
-    private static final long serialVersionUID = -25274270080678977L;
+
+    private static final long serialVersionUID = 2619918412167755103L;
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
     private String progQuestionId;

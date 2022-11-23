@@ -1,5 +1,7 @@
 package com.kse.lpep;
 
+import cn.hutool.crypto.digest.DigestUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.exceptions.MybatisPlusException;
@@ -21,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -250,22 +253,46 @@ class UserTest {
     }
 
     // 测试查询条件中加入不等于某个结合这个条件
-    // 测试成功，但是eq条件放前面，notin放后面
+    // 测试成功，需要合理的使用and和or的连接
     // notin需要size不为0
     @Test
     void testNotIn(){
         List<String> experIds = new ArrayList<>();
-//        experIds.add("34f6879f61c911edab7a2cf05decb14f");
-//        experIds.add("f4190480625811edab7a2cf05decb14g");
-        QueryWrapper<Exper> queryWrapper1 = new QueryWrapper<>();
-        queryWrapper1.eq("state", 0).or().eq("state", 2);
-        if(experIds.size() != 0){
-            queryWrapper1.notIn("id", experIds);
-        }
+        experIds.add("34f6879f61c911edab7a2cf05decb14f");
+        experIds.add("a749bcfc6a0b11ed8ed92cf05decb14f");
+
+        LambdaQueryWrapper<Exper> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.and(wp->wp.eq(Exper::getState, 0).notIn(Exper::getId, experIds))
+                .or(wp->wp.eq(Exper::getState, 2).notIn(Exper::getId, experIds));
 
 
-
-        List<Exper> expers = experMapper.selectList(queryWrapper1);
-        expers.stream().forEach(exper ->  System.out.println(exper));
+        List<Exper> expers = experMapper.selectList(lambdaQueryWrapper);
+        expers.stream().forEach(System.out::println);
     }
+
+    // 测试加密
+    // 测试成功
+    @Test
+    void testEncode(){
+        String s1 = "12345qw";
+        String s2 = "214defwdaw";
+        String s3 = "12345qw";
+        String encode1 = DigestUtil.sha256Hex(s1);
+        String encode2 = DigestUtil.sha256Hex(s2);
+        String encode3 = DigestUtil.sha256Hex(s3);
+        System.out.println(encode1);
+        System.out.println(encode2);
+        System.out.println(encode3);
+    }
+
+    // 路径测试
+    @Test
+    void testSpace(){
+        String fileSeparator = FileSystems.getDefault().getSeparator();
+        String dirname = "c://tmp/sb";
+        File d = new File(dirname);
+        d.mkdirs();
+    }
+
+
 }

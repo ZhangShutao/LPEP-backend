@@ -12,11 +12,13 @@ import com.kse.lpep.mapper.pojo.*;
 import com.kse.lpep.service.IAdminService;
 import com.kse.lpep.service.dto.AddProgQuestionDto;
 import com.kse.lpep.service.dto.CreateExperResult;
+import com.kse.lpep.service.dto.GroupInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminServiceImpl implements IAdminService {
@@ -79,16 +81,20 @@ public class AdminServiceImpl implements IAdminService {
         }
         Exper myReturnExper = experMapper.selectOne(queryWrapper);
         String experId = myReturnExper.getId();
-        groupInfoList.stream().forEach(groupInfo->
-        {
-            Group group = new Group();
-            group.setExperId(experId).setTitle(groupInfo.getGroupName());
-            try{
-                groupMapper.insert(group);
-            }catch (Exception e){
-                throw new InsertException("实验数据插入错误");
-            }
-        });
+        List<GroupInfo> groupInfos = groupInfoList.stream()
+            .map(g ->
+            {
+                Group group = new Group();
+                group.setExperId(experId).setTitle(g.getGroupName());
+                try{
+                    groupMapper.insert(group);
+                }catch (Exception e){
+                    throw new InsertException("实验数据插入错误");
+                }
+                GroupInfo groupInfo = new GroupInfo();
+                groupInfo.setGroupName(g.getGroupName()).setGroupId(group.getId());
+                return groupInfo;
+            }).collect(Collectors.toList());
 
         phaseInfoList.stream().forEach(phaseInfo->
         {
@@ -107,7 +113,7 @@ public class AdminServiceImpl implements IAdminService {
 //                .map(Group::getId).collect(Collectors.toList());
         CreateExperResult createExperResult = new CreateExperResult();
         createExperResult.setExperId(experId).setExperName(myReturnExper.getTitle())
-                .setStartTime(startTime).setStatus(0);
+                .setStartTime(startTime).setStatus(0).setGroups(groupInfos);
         return createExperResult;
     }
 

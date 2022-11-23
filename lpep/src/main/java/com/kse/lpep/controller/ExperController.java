@@ -1,6 +1,7 @@
 package com.kse.lpep.controller;
 
 
+import com.kse.lpep.common.constant.ConstantCode;
 import com.kse.lpep.common.exception.ElementDuplicateException;
 import com.kse.lpep.common.exception.FrontEndDataException;
 import com.kse.lpep.common.exception.SaveFileIOException;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -28,8 +30,17 @@ public class ExperController {
     /*
     获取下一阶段问题类型，并判断实验是否结束
      */
+
+    /**
+     * 获取下一阶段问题类型接口
+     * 功能介绍：前端询问下一阶段是什么类型问题
+     * 访问成功200；失败210；数据校验失败300
+     * @param request userId（用户id）；experId（实验id）；phaseNumber（实验的第几阶段）
+     * @return
+     * @See NextPhaseStatusResult
+     */
     @PostMapping("/getnextphasestatus")
-    public BaseResponse getNextPhaseStatus(@RequestBody NextPhaseTypeRequest request){
+    public BaseResponse getNextPhaseStatus(@RequestBody @Valid NextPhaseTypeRequest request){
         BaseResponse response = new BaseResponse();
         try{
             NextPhaseStatusResult nextPhaseStatusResult = experService.acquirePhaseStatus(
@@ -148,10 +159,10 @@ public class ExperController {
     public BaseResponse nonProgSubmit(@RequestBody NonProgSubmitRequest request){
         BaseResponse response = new BaseResponse();
         try{
-            String data = experService.submitNonProg(request.getUserId(), request.getAnswers());
-            response.setStatus(205).setMsg("用户提交非编程问题成功").setData(data);
+            experService.submitNonProg(request.getUserId(), request.getAnswers());
+            response.setStatus(ConstantCode.SUBMIT_SUCCESS).setMsg("用户提交非编程问题成功");
         }catch (ElementDuplicateException e) {
-            response.setStatus(215).setMsg("用户提交非编程问题失败");
+            response.setStatus(ConstantCode.SUBMIT_FAIL).setMsg("用户提交非编程问题失败");
         }
         return response;
     }

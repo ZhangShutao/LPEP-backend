@@ -1,6 +1,7 @@
 package com.kse.lpep.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -228,15 +229,16 @@ public class ExperServiceImpl implements IExperService {
         queryWrapper.eq("user_id", userId);
         List<String> experIds = userGroupMapper.selectList(queryWrapper).stream()
                 .map(UserGroup::getExperId).collect(Collectors.toList());
-        QueryWrapper<Exper> queryWrapper1 = new QueryWrapper<>();
-        queryWrapper1.eq("state", 0).or().eq("state", 2);
+
+        LambdaQueryWrapper<Exper> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         if(experIds.size() != 0) {
-            queryWrapper1.notIn("id", experIds);
+            lambdaQueryWrapper.and(wp -> wp.eq(Exper::getState, 0).notIn(Exper::getId, experIds))
+                    .or(wp -> wp.eq(Exper::getState, 2).notIn(Exper::getId, experIds));
+        }else{
+            lambdaQueryWrapper.eq(Exper::getState, 0).or().eq(Exper::getState, 2);
         }
-
         Page<Exper> experPage = new Page<>(pageIndex, pageSize, true);
-
-        IPage<Exper> experIPage = experMapper.selectPage(experPage, queryWrapper1);
+        IPage<Exper> experIPage = experMapper.selectPage(experPage, lambdaQueryWrapper);
         List<ExperInfo> experInfoList = experIPage.getRecords().stream()
                 .map(exper ->
                 {

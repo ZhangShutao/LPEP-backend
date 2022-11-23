@@ -1,8 +1,10 @@
 package com.kse.lpep.service.impl;
 
+import cn.hutool.crypto.digest.DigestUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.kse.lpep.common.exception.UserLoginException;
 import com.kse.lpep.mapper.IExperMapper;
 import com.kse.lpep.mapper.IUserFootprintMapper;
 import com.kse.lpep.mapper.IUserGroupMapper;
@@ -13,6 +15,7 @@ import com.kse.lpep.mapper.pojo.UserFootprint;
 import com.kse.lpep.mapper.pojo.UserGroup;
 import com.kse.lpep.service.IUserService;
 import com.kse.lpep.service.dto.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
@@ -42,9 +45,11 @@ public class UserServiceImpl implements IUserService {
         queryWrapper.eq("username", username);
         UserLoginResult userLoginResult = new UserLoginResult();
         User user = userMapper.selectOne(queryWrapper);
-        if(user == null || !(user.getPassword().equals(password))){
-            System.out.println(user);
-            throw new NullPointerException();
+        // 开始加密模式
+//        password = DigestUtil.sha256Hex(password);
+        System.out.println(password);
+        if(user == null || !(StringUtils.equals(user.getPassword(), password))){
+            throw new UserLoginException("用户登录失败");
         }
         userLoginResult.setUserId(user.getId()).setUsername(user.getUsername())
                 .setRealname(user.getRealname()).setIsAdmin(user.getIsAdmin());
@@ -64,6 +69,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     /*
+    没有检查后续逻辑
     情况0：用户不存在，直接返回null
     情况1：正常状态，用户可以选择其中一个待参与实验进行实验
     情况2：用户存在实验中断，此时用户只能点击中断的实验继续实验，其他待参与的实验能看到但不能开始
