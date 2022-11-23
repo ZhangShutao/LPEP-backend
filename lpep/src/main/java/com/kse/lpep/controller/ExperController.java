@@ -24,8 +24,8 @@ public class ExperController {
     获取下一阶段问题类型，并判断实验是否结束
      */
     @PostMapping("/getnextphasestatus")
-    public BaseResponse<NextPhaseStatusResult> getNextPhaseStatus(@RequestBody NextPhaseTypeRequest request){
-        BaseResponse<NextPhaseStatusResult> response = new BaseResponse<>();
+    public BaseResponse getNextPhaseStatus(@RequestBody NextPhaseTypeRequest request){
+        BaseResponse response = new BaseResponse();
         try{
             NextPhaseStatusResult nextPhaseStatusResult = experService.acquirePhaseStatus(
                     request.getUserId(), request.getExperId(), request.getPhaseNumber());
@@ -54,8 +54,8 @@ public class ExperController {
          3）包装返回
      */
     @PostMapping("/getnonprogquestion")
-    public BaseResponse<List<NonProgQuestionInfo>> getNonProgQuestion(@RequestBody NonProgQuestionRequest request){
-        BaseResponse<List<NonProgQuestionInfo>> response = new BaseResponse<>();
+    public BaseResponse getNonProgQuestion(@RequestBody NonProgQuestionRequest request){
+        BaseResponse response = new BaseResponse();
         // 1）获取题目并处理异常
         try{
             List<NonProgQuestionInfo> nonProgQuestionInfos = experService
@@ -72,8 +72,8 @@ public class ExperController {
         }
     }
     @PostMapping("/getprogquestion")
-    public BaseResponse<ProgQuestionResult> getProgQuestion(@RequestBody ProgQuestionRequest request){
-        BaseResponse<ProgQuestionResult> response = new BaseResponse<>();
+    public BaseResponse getProgQuestion(@RequestBody ProgQuestionRequest request){
+        BaseResponse response = new BaseResponse();
         // 1）获取题目并处理异常
         try{
             ProgQuestionResult progQuestionResult = experService
@@ -91,8 +91,8 @@ public class ExperController {
     }
 
     @GetMapping("listallrunner")
-    public BaseResponse<List<String>> listAllRunner(){
-        BaseResponse<List<String>> response = new BaseResponse<>();
+    public BaseResponse listAllRunner(){
+        BaseResponse response = new BaseResponse();
         List<String> data = experService.listRunnerType();
         response.setStatus(200).setMsg("返回所有runner的名称").setData(data);
         return response;

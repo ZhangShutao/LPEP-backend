@@ -24,10 +24,10 @@ public class UserController {
     private ITrainingMaterialService trainingMaterialService;
 
     @PostMapping("/login")
-    public BaseResponse<UserLoginResult> userLogin(@RequestBody UserLoginRequest request){
+    public BaseResponse userLogin(@RequestBody UserLoginRequest request){
         // 使用该注解后，前端的json格式request请求才可以正常运行，但是postman中的from-data不行
         // postman使用raw的json格式可以访问，只有post请求才使用该注解
-        BaseResponse<UserLoginResult> response = new BaseResponse<>();
+        BaseResponse response = new BaseResponse();
         try{
             UserLoginResult userLoginResult = userService.userLogin(request.getUsername(),
                     request.getPassword());
@@ -39,8 +39,8 @@ public class UserController {
         }
     }
     @GetMapping ("/getpersonalinfo")
-    public BaseResponse<PersonalResult> getPersonalInfo(String userId){
-        BaseResponse<PersonalResult> response = new BaseResponse<>();
+    public BaseResponse getPersonalInfo(String userId){
+        BaseResponse response = new BaseResponse();
         try{
             PersonalResult personalResult = userService.personalBasicInfo(userId);
             response.setStatus(200).setMsg("访问个人数据成功").setData(personalResult);
@@ -56,8 +56,8 @@ public class UserController {
       用户可能存在实验中断的实验
      */
     @GetMapping("/experstopart")
-    public BaseResponse<List<ExperInfo>> expersToPart(String userId){
-        BaseResponse<List<ExperInfo>> response = new BaseResponse<>();
+    public BaseResponse expersToPart(String userId){
+        BaseResponse response = new BaseResponse();
         try{
             List<ExperInfo> experInfos = userService.expersToParticipate(userId);
             int state = experInfos.get(0).getState();
@@ -79,8 +79,8 @@ public class UserController {
         }
     }
     @GetMapping("/querypersonaltrainingmaterial")
-    public BaseResponse<List<TrainingMaterialInfo>> listPersonalTrainingMaterial(String userId){
-        BaseResponse<List<TrainingMaterialInfo>> response = new BaseResponse<>();
+    public BaseResponse listPersonalTrainingMaterial(String userId){
+        BaseResponse response = new BaseResponse();
         response.setStatus(200);
         try{
             List<TrainingMaterialInfo> data = trainingMaterialService.listPersonalTextbook(userId);
