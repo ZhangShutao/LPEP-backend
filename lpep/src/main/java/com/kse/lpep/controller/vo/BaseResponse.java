@@ -5,8 +5,8 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class BaseResponse<T>{
+public class BaseResponse{
     private Integer status;
     private String msg;
-    private T data;
+    private Object data;
 }

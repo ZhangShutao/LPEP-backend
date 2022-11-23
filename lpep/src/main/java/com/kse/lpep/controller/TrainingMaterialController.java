@@ -82,8 +82,8 @@ public class TrainingMaterialController {
     }
 
     @GetMapping("/getexpergroup")
-    public BaseResponse<List<ExperGroupInfo>> getExperAndGroup(){
-        BaseResponse<List<ExperGroupInfo>> response = new BaseResponse<>();
+    public BaseResponse getExperAndGroup(){
+        BaseResponse response = new BaseResponse();
         response.setStatus(200).setMsg("返回所有实验和组别");
         List<ExperGroupInfo> data = trainingMaterialService.queryAllExperGroup();
         response.setData(data);
@@ -92,8 +92,8 @@ public class TrainingMaterialController {
 
     // 自己测试文件上传功能
     @PostMapping("/upload")
-    public BaseResponse<String> testUpload(@RequestParam(value = "file") MultipartFile file){
-        BaseResponse<String> response = new BaseResponse<>();
+    public BaseResponse testUpload(@RequestParam(value = "file") MultipartFile file){
+        BaseResponse response = new BaseResponse();
         response.setStatus(200);
         String workspace = "c:/train";
         try{

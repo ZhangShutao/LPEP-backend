@@ -29,8 +29,8 @@ public class ExperController {
     获取下一阶段问题类型，并判断实验是否结束
      */
     @PostMapping("/getnextphasestatus")
-    public BaseResponse<NextPhaseStatusResult> getNextPhaseStatus(@RequestBody NextPhaseTypeRequest request){
-        BaseResponse<NextPhaseStatusResult> response = new BaseResponse<>();
+    public BaseResponse getNextPhaseStatus(@RequestBody NextPhaseTypeRequest request){
+        BaseResponse response = new BaseResponse();
         try{
             NextPhaseStatusResult nextPhaseStatusResult = experService.acquirePhaseStatus(
                     request.getUserId(), request.getExperId(), request.getPhaseNumber());
@@ -59,8 +59,8 @@ public class ExperController {
          3）包装返回
      */
     @PostMapping("/getnonprogquestion")
-    public BaseResponse<List<NonProgQuestionInfo>> getNonProgQuestion(@RequestBody NonProgQuestionRequest request){
-        BaseResponse<List<NonProgQuestionInfo>> response = new BaseResponse<>();
+    public BaseResponse getNonProgQuestion(@RequestBody NonProgQuestionRequest request){
+        BaseResponse response = new BaseResponse();
         // 1）获取题目并处理异常
         try{
             List<NonProgQuestionInfo> nonProgQuestionInfos = experService
@@ -77,8 +77,8 @@ public class ExperController {
         }
     }
     @PostMapping("/getprogquestion")
-    public BaseResponse<ProgQuestionResult> getProgQuestion(@RequestBody ProgQuestionRequest request){
-        BaseResponse<ProgQuestionResult> response = new BaseResponse<>();
+    public BaseResponse getProgQuestion(@RequestBody ProgQuestionRequest request){
+        BaseResponse response = new BaseResponse();
         // 1）获取题目并处理异常
         try{
             ProgQuestionResult progQuestionResult = experService
@@ -96,16 +96,16 @@ public class ExperController {
     }
 
     @GetMapping("listallrunner")
-    public BaseResponse<List<String>> listAllRunner(){
-        BaseResponse<List<String>> response = new BaseResponse<>();
+    public BaseResponse listAllRunner(){
+        BaseResponse response = new BaseResponse();
         List<String> data = experService.listRunnerType();
         response.setStatus(200).setMsg("返回所有runner的名称").setData(data);
         return response;
     }
 
     @GetMapping("/querygroups")
-    public BaseResponse<List<GroupInfo>> queryGroups(String experId){
-        BaseResponse<List<GroupInfo>> response = new BaseResponse<>();
+    public BaseResponse queryGroups(String experId){
+        BaseResponse response = new BaseResponse();
         List<GroupInfo> data = experService.queryAllGroups(experId);
         response.setStatus(200).setData(data);
         return response;
@@ -116,8 +116,8 @@ public class ExperController {
     这个id需要存储在前端，后面一起给问题创建接口
      */
     @GetMapping("/getcaseid")
-    public BaseResponse<String> getCaseId(Integer number){
-        BaseResponse<String> response = new BaseResponse<>();
+    public BaseResponse getCaseId(Integer number){
+        BaseResponse response = new BaseResponse();
         String data = questionService.acquireCaseId(number);
         response.setStatus(200).setData(data);
         return response;
@@ -127,14 +127,14 @@ public class ExperController {
     上传测试文件并返回文件名
      */
     @PostMapping("/uploadtestfile")
-    public BaseResponse<String> uploadTestFile(
+    public BaseResponse uploadTestFile(
             @RequestParam(value = "isInput") Integer isInput,
             @RequestParam(value = "caseId") String caseId,
             @RequestParam(value = "experId") String experId,
             @RequestParam(value = "groupId") String groupId,
             @RequestParam(value = "file")MultipartFile file
             ){
-        BaseResponse<String> response = new BaseResponse<>();
+        BaseResponse response = new BaseResponse();
         try{
             String data = questionService.uploadExperTestFile(isInput, caseId, experId, groupId, file);
             response.setStatus(203).setMsg("上传成功").setData(data);
@@ -145,8 +145,8 @@ public class ExperController {
     }
 
     @PostMapping("/nonprogsubmit")
-    public BaseResponse<String> nonProgSubmit(@RequestBody NonProgSubmitRequest request){
-        BaseResponse<String> response = new BaseResponse<>();
+    public BaseResponse nonProgSubmit(@RequestBody NonProgSubmitRequest request){
+        BaseResponse response = new BaseResponse();
         try{
             String data = experService.submitNonProg(request.getUserId(), request.getAnswers());
             response.setStatus(205).setMsg("用户提交非编程问题成功").setData(data);

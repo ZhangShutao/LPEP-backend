@@ -32,9 +32,9 @@ public class UserController {
     private ITrainingMaterialService trainingMaterialService;
 
     @PostMapping("/login")
-    public BaseResponse<Object> userLogin(@RequestBody @Valid UserLoginRequest request,
+    public BaseResponse userLogin(@RequestBody @Valid UserLoginRequest request,
                                                    BindingResult bindingResult){
-        BaseResponse<Object> response = new BaseResponse<>();
+        BaseResponse response = new BaseResponse();
         if(bindingResult.hasErrors()){
             List<String> errorMessageList = bindingResult.getAllErrors().stream()
                     .map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());
@@ -54,8 +54,8 @@ public class UserController {
         return response;
     }
     @GetMapping ("/getpersonalinfo")
-    public BaseResponse<PersonalResult> getPersonalInfo(String userId){
-        BaseResponse<PersonalResult> response = new BaseResponse<>();
+    public BaseResponse getPersonalInfo(String userId){
+        BaseResponse response = new BaseResponse();
         try{
             PersonalResult personalResult = userService.personalBasicInfo(userId);
             response.setStatus(200).setMsg("访问个人数据成功").setData(personalResult);
@@ -71,8 +71,8 @@ public class UserController {
       用户可能存在实验中断的实验
      */
     @GetMapping("/experstopart")
-    public BaseResponse<List<ExperInfo>> expersToPart(String userId){
-        BaseResponse<List<ExperInfo>> response = new BaseResponse<>();
+    public BaseResponse expersToPart(String userId){
+        BaseResponse response = new BaseResponse();
         try{
             List<ExperInfo> experInfos = userService.expersToParticipate(userId);
             int state = experInfos.get(0).getState();
@@ -93,8 +93,8 @@ public class UserController {
         return response;
     }
     @GetMapping("/querypersonaltrainingmaterial")
-    public BaseResponse<List<TrainingMaterialInfo>> listPersonalTrainingMaterial(String userId){
-        BaseResponse<List<TrainingMaterialInfo>> response = new BaseResponse<>();
+    public BaseResponse listPersonalTrainingMaterial(String userId){
+        BaseResponse response = new BaseResponse();
         response.setStatus(200);
         try{
             List<TrainingMaterialInfo> data = trainingMaterialService.listPersonalTextbook(userId);
@@ -106,10 +106,10 @@ public class UserController {
     }
 
     @PostMapping("/testfile")
-    public BaseResponse<String> testFile(
+    public BaseResponse testFile(
             @RequestParam(value = "file") MultipartFile file
             ){
-        BaseResponse<String> resp = new BaseResponse<>();
+        BaseResponse resp = new BaseResponse();
         String saveName = "1.txt";
         String savePath = "c:/test";
         try {
