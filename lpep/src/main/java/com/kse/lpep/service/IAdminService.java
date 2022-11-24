@@ -1,6 +1,7 @@
 package com.kse.lpep.service;
 
 import com.kse.lpep.controller.vo.AddNonProgQuestionInfo;
+import com.kse.lpep.controller.vo.AddProgQuestionInfo;
 import com.kse.lpep.controller.vo.CreateGroupInfo;
 import com.kse.lpep.controller.vo.CreatePhaseInfo;
 import com.kse.lpep.service.dto.AddProgQuestionDto;
@@ -22,11 +23,14 @@ public interface IAdminService {
     /*
     添加非编程类型问题，这里选择相信前端
      */
-    int addQuestionTypeNonProg(String experId, String groupName, int phaseNumber,
+    int addQuestionTypeNonProg(String experId, String groupId, int phaseNumber,
                                    List<AddNonProgQuestionInfo> addNonProgQuestionInfoList);
 
     /*
     管理员添加编程类型问题
      */
-    int addQuestionTypeProg(AddProgQuestionDto reqDto, List<String> caseIds);
+//    int addQuestionTypeProg(AddProgQuestionDto reqDto, List<String> caseIds);
+
+    void addQuestionTypeProg(String experId, String groupId, int phaseNumber,
+                            List<AddProgQuestionInfo> addProgQuestionInfoList);
 }

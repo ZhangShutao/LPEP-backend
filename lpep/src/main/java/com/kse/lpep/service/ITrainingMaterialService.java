@@ -38,7 +38,7 @@ public interface ITrainingMaterialService {
      */
     List<ExperGroupInfo> queryAllExperGroup();
 
-    int vaildStatus(String name, String experId, String groupId);
+    int validStatus(String name, String experId, String groupId);
 
 
     QueryTrainingMaterialInfo createTrainingMaterial(String name, String experId, String groupId,

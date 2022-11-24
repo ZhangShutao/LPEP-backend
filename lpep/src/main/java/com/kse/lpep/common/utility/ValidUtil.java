@@ -15,6 +15,7 @@ public class ValidUtil {
 //        return res;
 //    }
 
+    // 校验失败时将错误信息组合成一个字符串
     public static String getValidErrorMessage(BindingResult bindingResult){
         List<String> errorMessageList = bindingResult.getAllErrors().stream()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage).collect(Collectors.toList());

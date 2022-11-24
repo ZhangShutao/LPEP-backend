@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -41,16 +42,18 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public UserLoginResult userLogin(String username, String password) {
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", username);
-        UserLoginResult userLoginResult = new UserLoginResult();
-        User user = userMapper.selectOne(queryWrapper);
+//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.eq("username", username);
+//        User user = userMapper.selectOne(queryWrapper);
+
+        User user = userMapper.selectAccountPassword(username, password);
         // 开始加密模式
-//        password = DigestUtil.sha256Hex(password);
-        System.out.println(password);
+        password = DigestUtil.sha256Hex(password);
+//        System.out.println(password);
         if(user == null || !(StringUtils.equals(user.getPassword(), password))){
             throw new UserLoginException("用户登录失败");
         }
+        UserLoginResult userLoginResult = new UserLoginResult();
         userLoginResult.setUserId(user.getId()).setUsername(user.getUsername())
                 .setRealname(user.getRealname()).setIsAdmin(user.getIsAdmin());
         return userLoginResult;
@@ -85,10 +88,9 @@ public class UserServiceImpl implements IUserService {
         if(userMapper.selectById(id) == null){
             throw new NullPointerException();
         }
-        QueryWrapper<UserGroup> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", id);
+
         // 2.查询获取用户所有的实验id
-        List<UserGroup> userGroups = userGroupMapper.selectList(queryWrapper);
+        List<UserGroup> userGroups = userGroupMapper.selectByUserId(id);
         List<String> experIds = userGroups.stream()
                 .filter(userGroup -> {
                     Exper exper = experMapper.selectById(userGroup.getExperId());
@@ -98,9 +100,7 @@ public class UserServiceImpl implements IUserService {
         // 3.判断用户是否存在未完成的实验，并筛选已经完成的实验
         boolean isExistBreak = false;
         for(String experId : experIds){
-            QueryWrapper<UserFootprint> queryWrapper1 = new QueryWrapper<>();
-            queryWrapper1.eq("user_id", id).eq("exper_id", experId);
-            UserFootprint userFootprint = userFootprintMapper.selectOne(queryWrapper1);
+            UserFootprint userFootprint = userFootprintMapper.selectByUserExper(id, experId);
             ExperInfo experInfo = new ExperInfo();
             experInfo.setState(0);
             if(userFootprint != null){
@@ -154,10 +154,13 @@ public class UserServiceImpl implements IUserService {
         return testerInfoPage;
     }
 
+    @Transactional
     @Override
     public TesterInfo createNewUser(String username, String realname, int isAdmin) {
         User user = new User();
-        user.setUsername(username).setPassword(username).setRealname(realname).setIsAdmin(isAdmin);
+        //开启加密
+        String password = DigestUtil.sha256Hex(username);
+        user.setUsername(username).setPassword(password).setRealname(realname).setIsAdmin(isAdmin);
         try{
             userMapper.insert(user);
             QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -186,6 +189,7 @@ public class UserServiceImpl implements IUserService {
     /**
      * 管理员删除用户
      */
+    @Transactional
     @Override
     public int deleteUser(String userId) {
         return userMapper.deleteById(userId);

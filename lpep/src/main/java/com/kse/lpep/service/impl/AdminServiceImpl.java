@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.kse.lpep.common.exception.ElementDuplicateException;
 import com.kse.lpep.common.exception.InsertException;
 import com.kse.lpep.controller.vo.AddNonProgQuestionInfo;
+import com.kse.lpep.controller.vo.AddProgQuestionInfo;
 import com.kse.lpep.controller.vo.CreateGroupInfo;
 import com.kse.lpep.controller.vo.CreatePhaseInfo;
 import com.kse.lpep.mapper.*;
@@ -13,9 +14,13 @@ import com.kse.lpep.service.IAdminService;
 import com.kse.lpep.service.dto.AddProgQuestionDto;
 import com.kse.lpep.service.dto.CreateExperResult;
 import com.kse.lpep.service.dto.GroupInfo;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.FileSystems;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,30 +43,34 @@ public class AdminServiceImpl implements IAdminService {
     private IProgQuestionMapper progQuestionMapper;
     @Autowired
     private ICaseMapper caseMapper;
+    @Value("${is_windows}")
+    private Integer isWindows;
     /*
      * 1.判断userId是否存在
      * 2.判断experId和groupId是否对应
      * 3.判断该用户是否已经加入
      */
+    @Transactional
     @Override
     public int addTesterToExper(String userId, String experId, String groupId) {
         if(userMapper.selectById(userId) == null){
-            return 0;
+            throw new NullPointerException("用户id不存在");
         }
         String myExperId = groupMapper.selectById(groupId).getExperId();
         if(!myExperId.equals(experId)){
-            return 0;
+            throw new NullPointerException("实验id和组别id错误");
         }
         QueryWrapper<UserGroup> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId).eq("group_id", groupId).eq("exper_id", experId);
         if(userGroupMapper.selectOne(queryWrapper) != null){
-            return 0;
+            throw new ElementDuplicateException("用户已存在");
         }
         UserGroup userGroup = new UserGroup();
         userGroup.setUserId(userId).setGroupId(groupId).setExperId(experId);
         return userGroupMapper.insert(userGroup);
     }
 
+    @Transactional
     @Override
     public CreateExperResult createExper(String creatorId, String experName, String startTime, String workspace,
                                          List<CreateGroupInfo> groupInfoList, List<CreatePhaseInfo> phaseInfoList) {
@@ -72,6 +81,10 @@ public class AdminServiceImpl implements IAdminService {
         }
         Exper exper = new Exper();
         Timestamp myStartTime = Timestamp.valueOf(startTime);
+        String fileSeparator = FileSystems.getDefault().getSeparator();
+        if(isWindows == 1) {
+            workspace = "c:" + fileSeparator + workspace;
+        }
         exper.setTitle(experName).setCreator(creatorId).setState(0).setWorkspace(workspace)
                 .setStartTime(myStartTime);
         try {
@@ -117,12 +130,13 @@ public class AdminServiceImpl implements IAdminService {
         return createExperResult;
     }
 
+    @Transactional
     @Override
-    public int addQuestionTypeNonProg(String experId, String groupName, int phaseNumber,
+    public int addQuestionTypeNonProg(String experId, String groupId, int phaseNumber,
                                           List<AddNonProgQuestionInfo> addNonProgQuestionInfoList) {
-        QueryWrapper<Group> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("exper_id", experId).eq("title", groupName);
-        String groupId = groupMapper.selectOne(queryWrapper).getId();
+//        QueryWrapper<Group> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.eq("exper_id", experId).eq("title", groupName);
+//        String groupId = groupMapper.selectOne(queryWrapper).getId();
         QueryWrapper<Phase> queryWrapper1 = new QueryWrapper<>();
         queryWrapper1.eq("exper_id", experId).eq("phase_number", phaseNumber);
         String phaseId = phaseMapper.selectOne(queryWrapper1).getId();
@@ -146,44 +160,88 @@ public class AdminServiceImpl implements IAdminService {
         return 1;
     }
 
+//    @Override
+//    public int addQuestionTypeProg(AddProgQuestionDto reqDto, List<String> caseIds) {
+//        try {
+//            // 1.获取组别id和阶段id
+//            QueryWrapper<Group> queryWrapper = new QueryWrapper<>();
+//            queryWrapper.eq("exper_id", reqDto.getExperId()).eq("title", reqDto.getGroupName());
+//            String groupId = groupMapper.selectOne(queryWrapper).getId();
+//            QueryWrapper<Phase> queryWrapper1 = new QueryWrapper<>();
+//            queryWrapper1.eq("exper_id", reqDto.getExperId())
+//                    .eq("phase_number", reqDto.getPhaseNumber());
+//            String phaseId = phaseMapper.selectOne(queryWrapper1).getId();
+//
+//            // 2.验证该题号是否存在
+//            QueryWrapper<ProgQuestion> queryWrapper2 = new QueryWrapper<>();
+//            queryWrapper2.eq("phase_id", phaseId).eq("number", reqDto.getQuestionNumber())
+//                    .eq("group_id", groupId);
+//            if(progQuestionMapper.selectOne(queryWrapper2) != null){
+//                throw new ElementDuplicateException("问题插入重复");
+//            }
+//            ProgQuestion progQuestion = new ProgQuestion();
+//            progQuestion.setPhaseId(phaseId).setNumber(reqDto.getQuestionNumber()).setContent(reqDto.getContent())
+//                    .setGroupId(groupId).setExperId(reqDto.getExperId()).setRunnerId(reqDto.getRunnerId())
+//                    .setTimeLimit(reqDto.getTimeLimit()).setRuntimeLimit(reqDto.getRuntimeLimit());
+//            progQuestionMapper.insert(progQuestion);
+//            // 3.更新case表
+//            String progQuestionId = progQuestion.getId();
+//            caseIds.stream().forEach(caseId->
+//            {
+//                if(caseMapper.selectById(caseId) == null){
+//                    throw new NullPointerException("caseId列表传入错误");
+//                }
+//                Case myCase = new Case();
+//                myCase.setId(caseId).setProgQuestionId(progQuestionId);
+//                caseMapper.updateById(myCase);
+//            });
+//        }catch (NullPointerException e){
+//            throw new NullPointerException("实验id，组别名，阶段编号传入错误");
+//        }
+//        return 1;
+//    }
+    @Transactional
     @Override
-    public int addQuestionTypeProg(AddProgQuestionDto reqDto, List<String> caseIds) {
-        try {
-            // 1.获取组别id和阶段id
-            QueryWrapper<Group> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq("exper_id", reqDto.getExperId()).eq("title", reqDto.getGroupName());
-            String groupId = groupMapper.selectOne(queryWrapper).getId();
-            QueryWrapper<Phase> queryWrapper1 = new QueryWrapper<>();
-            queryWrapper1.eq("exper_id", reqDto.getExperId())
-                    .eq("phase_number", reqDto.getPhaseNumber());
-            String phaseId = phaseMapper.selectOne(queryWrapper1).getId();
-
-            // 2.验证该题号是否存在
-            QueryWrapper<ProgQuestion> queryWrapper2 = new QueryWrapper<>();
-            queryWrapper2.eq("phase_id", phaseId).eq("number", reqDto.getQuestionNumber())
-                    .eq("group_id", groupId);
-            if(progQuestionMapper.selectOne(queryWrapper2) != null){
+    public void addQuestionTypeProg(String experId, String groupId, int phaseNumber,
+                                   List<AddProgQuestionInfo> addProgQuestionInfoList) {
+        // 1.获取组别id和阶段id
+//        String groupId = groupMapper.selectIdByExperAndName(experId, groupName);
+        String phaseId = phaseMapper.selectByExperAndNumber(experId, phaseNumber).getId();
+        if(StringUtils.isBlank(groupId) || StringUtils.isBlank(phaseId)){
+            throw new NullPointerException("groupId 或 phaseId错误");
+        }
+        addProgQuestionInfoList.stream().forEach(q->{
+            // 2.验证题号是否存在
+            if(!StringUtils.isBlank(progQuestionMapper.selectIdByPhaseNumberGroup(phaseId,
+                    q.getQuestionNumber(), groupId))){
                 throw new ElementDuplicateException("问题插入重复");
             }
             ProgQuestion progQuestion = new ProgQuestion();
-            progQuestion.setPhaseId(phaseId).setNumber(reqDto.getQuestionNumber()).setContent(reqDto.getContent())
-                    .setGroupId(groupId).setExperId(reqDto.getExperId()).setRunnerId(reqDto.getRunnerId())
-                    .setTimeLimit(reqDto.getTimeLimit()).setRuntimeLimit(reqDto.getRuntimeLimit());
+            progQuestion.setPhaseId(phaseId).setNumber(q.getQuestionNumber()).setContent(q.getContent())
+                    .setGroupId(groupId).setExperId(experId).setRunnerId(q.getRunnerId())
+                    .setTimeLimit(q.getTimeLimit()).setRuntimeLimit(q.getRuntimeLimit());
             progQuestionMapper.insert(progQuestion);
             // 3.更新case表
             String progQuestionId = progQuestion.getId();
-            caseIds.stream().forEach(caseId->
-            {
+            int caseNumber = 1;
+            for(String caseId : q.getCaseIds()){
                 if(caseMapper.selectById(caseId) == null){
-                    throw new NullPointerException("caseId列表传入错误");
+                    throw new NullPointerException("问题" + progQuestionId + "的caseId列表传入错误");
                 }
                 Case myCase = new Case();
-                myCase.setId(caseId).setProgQuestionId(progQuestionId);
+                myCase.setId(caseId).setProgQuestionId(progQuestionId).setNumber(caseNumber++);
                 caseMapper.updateById(myCase);
-            });
-        }catch (NullPointerException e){
-            throw new NullPointerException("实验id，组别名，阶段编号传入错误");
-        }
-        return 1;
+            }
+
+//            q.getCaseIds().stream().forEach(caseId ->
+//            {
+//                if(caseMapper.selectById(caseId) == null){
+//                    throw new NullPointerException("问题" + progQuestionId + "的caseId列表传入错误");
+//                }
+//                Case myCase = new Case();
+//                myCase.setId(caseId).setProgQuestionId(progQuestionId);
+//                caseMapper.updateById(myCase);
+//            });
+        });
     }
 }

@@ -14,6 +14,7 @@ import com.kse.lpep.service.dto.*;
 import lombok.experimental.Accessors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -44,16 +45,13 @@ public class ExperServiceImpl implements IExperService {
    1. 首先判断实验是否结束，结束则修改用户做题状态
    2. 如果实验没有结束，判断下一阶段题目类型
     */
+    @Transactional
     @Override
     public NextPhaseStatusResult acquirePhaseStatus(String userId, String experId, int phaseNumber) {
         // 查询表t_phase
         NextPhaseStatusResult nextPhaseStatusResult = new NextPhaseStatusResult();
-        QueryWrapper<Phase> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("exper_id", experId).eq("phase_number", phaseNumber);
-        QueryWrapper<Phase> queryWrapper1 = new QueryWrapper<>();
-        queryWrapper1.eq("exper_id", experId).eq("phase_number", phaseNumber - 1);
-        Phase phase = phaseMapper.selectOne(queryWrapper);
-        Phase phase1 = phaseMapper.selectOne(queryWrapper1);
+        Phase phase = phaseMapper.selectByExperAndNumber(experId, phaseNumber);
+        Phase phase1 = phaseMapper.selectByExperAndNumber(experId, phaseNumber - 1);
         if(phase == null){
             // 不存在下一个阶段，实验结束
             if(phase1 != null){
@@ -79,6 +77,7 @@ public class ExperServiceImpl implements IExperService {
     3. 排序并封装该阶段所有的非编程问题
     4. 更改用户状态
      */
+    @Transactional
     @Override
     public List<NonProgQuestionInfo> acquireNonProgQuestion(String userId,  String experId, int phaseNumber) {
         // 1.获取groupId和phaseId并判空和题目类型
@@ -127,6 +126,7 @@ public class ExperServiceImpl implements IExperService {
     2. 获取问题，并判断该问题是否为最后一题
     3. 更改用户状态
      */
+    @Transactional
     @Override
     public ProgQuestionResult acquireProgQuestion(String userId, String experId,
                                                   int phaseNumber, int questionNumber) {
@@ -187,6 +187,7 @@ public class ExperServiceImpl implements IExperService {
         return experInfoPage;
     }
 
+    @Transactional
     @Override
     public void modifyExperStatus(String experId, int currentStatus, int targetStatus) {
         // 首先查询实验是否存在
@@ -215,11 +216,15 @@ public class ExperServiceImpl implements IExperService {
     }
 
     @Override
-    public List<String> listRunnerType() {
+    public List<RunnerInfo> listRunnerType() {
         List<Runner> runnerList = runnerMapper.selectList(null);
-        List<String> runnerNameList = runnerList.stream()
-                .map(Runner::getName).collect(Collectors.toList());
-        return runnerNameList;
+        List<RunnerInfo> runnerInfoList = runnerList.stream()
+                .map(r->{
+                    RunnerInfo runnerInfo = new RunnerInfo();
+                    runnerInfo.setRunnerId(r.getId()).setRunnerName(r.getName());
+                    return runnerInfo;
+                }).collect(Collectors.toList());
+        return runnerInfoList;
     }
 
     // 管理员分页查询用户未参与的实验
@@ -267,7 +272,11 @@ public class ExperServiceImpl implements IExperService {
     public List<GroupInfo> queryAllGroups(String experId) {
         QueryWrapper<Group> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("exper_id", experId);
-        List<GroupInfo> groupInfoList = groupMapper.selectList(queryWrapper).stream()
+        List<Group> groupList = groupMapper.selectList(queryWrapper);
+        if(groupList.size() == 0){
+            throw new NullPointerException("该实验id下没有分组");
+        }
+        List<GroupInfo> groupInfoList = groupList.stream()
                 .map(group ->
                 {
                     GroupInfo groupInfo = new GroupInfo();
@@ -277,6 +286,7 @@ public class ExperServiceImpl implements IExperService {
         return groupInfoList;
     }
 
+    @Transactional
     @Override
     public String submitNonProg(String userId, List<UserAnswerDto> answers) {
         QueryWrapper<Submit> queryWrapper = new QueryWrapper<>();

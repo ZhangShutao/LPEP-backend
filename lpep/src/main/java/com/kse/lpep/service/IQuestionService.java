@@ -8,7 +8,8 @@ public interface IQuestionService {
     /*
     获取caseId，为后续test案例插入做准备
      */
-    String acquireCaseId(int number);
+    String acquireCaseId();
 
+    void checkParam(Integer isInput, String caseId, String experId, String groupId);
 
 }

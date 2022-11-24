@@ -7,10 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.exceptions.MybatisPlusException;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.kse.lpep.mapper.ICaseMapper;
-import com.kse.lpep.mapper.IExperMapper;
-import com.kse.lpep.mapper.IUserFootprintMapper;
-import com.kse.lpep.mapper.IUserMapper;
+import com.kse.lpep.mapper.*;
 import com.kse.lpep.mapper.pojo.*;
 import com.kse.lpep.service.dto.QueryTrainingMaterialInfo;
 import org.apache.commons.lang3.StringUtils;
@@ -286,12 +283,24 @@ class UserTest {
     }
 
     // 路径测试
+    // 测试结果：mkdir只会创建一层目录，上层目录不存在则创建失败，mkdirs才是正解
     @Test
     void testSpace(){
         String fileSeparator = FileSystems.getDefault().getSeparator();
         String dirname = "c://tmp/sb";
         File d = new File(dirname);
         d.mkdirs();
+    }
+
+    @Autowired
+    private IUserGroupMapper userGroupMapper;
+    // mapper层写select方法的测试
+    @Test
+    void testMySelect(){
+//        User user = userMapper.selectAccountPassword("22222", "22222");
+//        System.out.println(user.getRealname());
+        userGroupMapper.selectByUserId("2045747668c211ed8ed92cf05decb14f").forEach(System.out::println);
+
     }
 
 

@@ -60,7 +60,7 @@ public interface IExperService {
      * 列举所有求解器的类型
      * @return
      */
-    List<String> listRunnerType();
+    List<RunnerInfo> listRunnerType();
 
     /**
      * 分页查询用户未参与的实验

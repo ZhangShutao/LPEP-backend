@@ -1,5 +1,6 @@
 package com.kse.lpep.mapper.pojo;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -12,7 +13,7 @@ import java.io.Serializable;
 @TableName("t_user_group")
 public class UserGroup implements Serializable {
     private static final long serialVersionUID = 8496939899638839210L;
-    @TableId
+    @TableId(type = IdType.ASSIGN_UUID)
     private String id;
     private String userId;
     private String groupId;

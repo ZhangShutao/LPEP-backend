@@ -9,9 +9,10 @@ import java.io.IOException;
 public class SavingFile {
     /**
      * 工具类保存文件
+     * 例如要將文件test.pdf存到c:/train下，
      * @param file 保存的文件
-     * @param saveName 文件要保存成什么名字
-     * @param savePath 文件保存的路径
+     * @param saveName 文件要保存成什么名字 test.pdf
+     * @param savePath 文件保存的路径 c:/train
      * @return true成功
      */
     public static boolean saveFile(MultipartFile file, String saveName, String savePath){
