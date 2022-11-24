@@ -5,13 +5,13 @@ package com.kse.lpep.common.exception;
  * @author 张舒韬
  * @since 2022/11/22
  */
-public class NoSuchRecordError extends Exception {
+public class NoSuchRecordException extends Exception {
 
-    public NoSuchRecordError(String message) {
+    public NoSuchRecordException(String message) {
         super(message);
     }
 
-    public NoSuchRecordError(String message, Throwable cause) {
+    public NoSuchRecordException(String message, Throwable cause) {
         super(message, cause);
     }
 }
