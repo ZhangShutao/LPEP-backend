@@ -171,8 +171,11 @@ public class ExperServiceImpl implements IExperService {
 
     @Override
     public ExperInfoPage getAllExper(int pageIndex, int pageSize) {
+        QueryWrapper<Exper> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc("create_time");
+
         Page<Exper> experPage = new Page<>(pageIndex, pageSize, true);
-        IPage<Exper> experIPage = experMapper.selectPage(experPage, null);
+        IPage<Exper> experIPage = experMapper.selectPage(experPage, queryWrapper);
         List<ExperInfo> experInfoList = experIPage.getRecords().stream()
                 .map(exper ->
                 {
@@ -238,7 +241,10 @@ public class ExperServiceImpl implements IExperService {
         LambdaQueryWrapper<Exper> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         if(experIds.size() != 0) {
             lambdaQueryWrapper.and(wp -> wp.eq(Exper::getState, 0).notIn(Exper::getId, experIds))
-                    .or(wp -> wp.eq(Exper::getState, 2).notIn(Exper::getId, experIds));
+                    .or(wp -> wp.eq(Exper::getState, 2).notIn(Exper::getId, experIds))
+                    .orderByDesc(Exper::getCreateTime);
+//            lambdaQueryWrapper.and(wp -> wp.eq(Exper::getState, 0).notIn(Exper::getId, experIds))
+//                    .or(wp -> wp.eq(Exper::getState, 2).notIn(Exper::getId, experIds));
         }else{
             lambdaQueryWrapper.eq(Exper::getState, 0).or().eq(Exper::getState, 2);
         }

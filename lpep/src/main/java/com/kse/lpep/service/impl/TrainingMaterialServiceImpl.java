@@ -74,9 +74,13 @@ public class TrainingMaterialServiceImpl implements ITrainingMaterialService {
     @Override
     public QueryTrainingMaterialInfoPage queryAllMaterialInfo(int pageIndex, int pageSize) {
         try{
+            // 分页加入了排序
+            QueryWrapper<TrainingMaterial> queryWrapper = new QueryWrapper<>();
+            queryWrapper.orderByDesc("last_update_time");
+
             Page<TrainingMaterial> trainingMaterialPage = new Page<>(pageIndex, pageSize, true);
             IPage<TrainingMaterial> trainingMaterialIPage = trainingMaterialMapper
-                    .selectPage(trainingMaterialPage, null);
+                    .selectPage(trainingMaterialPage, queryWrapper);
 
             List<TrainingMaterial> trainingMaterialList = trainingMaterialIPage.getRecords();
 

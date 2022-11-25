@@ -57,4 +57,19 @@ public interface IUserService {
      */
     UserRealnameDto getRealname(String username);
 
+
+    /**
+     * 根据实验id获取所有用户和组别信息
+     * @param experId
+     * @return
+     */
+    UserWithGroupInfoPage getAllUserGroupByExperId(String experId, int pageIndex, int pageSize);
+
+    /**
+     * 管理员从实验中删除用户
+     * @param experId
+     * @param userId
+     */
+    void deleteUserFromExper(String experId, String userId);
+
 }

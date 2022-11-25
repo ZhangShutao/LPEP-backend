@@ -4,17 +4,17 @@ import cn.hutool.crypto.digest.DigestUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.kse.lpep.common.exception.DeleteException;
+import com.kse.lpep.common.exception.RecordNotExistException;
 import com.kse.lpep.common.exception.UserLoginException;
-import com.kse.lpep.mapper.IExperMapper;
-import com.kse.lpep.mapper.IUserFootprintMapper;
-import com.kse.lpep.mapper.IUserGroupMapper;
-import com.kse.lpep.mapper.IUserMapper;
+import com.kse.lpep.mapper.*;
 import com.kse.lpep.mapper.pojo.Exper;
 import com.kse.lpep.mapper.pojo.User;
 import com.kse.lpep.mapper.pojo.UserFootprint;
 import com.kse.lpep.mapper.pojo.UserGroup;
 import com.kse.lpep.service.IUserService;
 import com.kse.lpep.service.dto.*;
+import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
@@ -39,6 +39,8 @@ public class UserServiceImpl implements IUserService {
 
     @Autowired
     private IUserFootprintMapper userFootprintMapper;
+    @Autowired
+    private IGroupMapper groupMapper;
 
     @Override
     public UserLoginResult userLogin(String username, String password) {
@@ -136,7 +138,7 @@ public class UserServiceImpl implements IUserService {
     @Override
     public TesterInfoPage queryAllTester(int pageIndex, int pageSize) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("is_admin", 0);
+        queryWrapper.eq("is_admin", 0).orderByAsc("username");
         Page<User> userPage = new Page<>(pageIndex, pageSize, true);
         IPage<User> userIPage = userMapper.selectPage(userPage, queryWrapper);
         List<TesterInfo> testerInfoList = userIPage.getRecords().stream()
@@ -204,5 +206,60 @@ public class UserServiceImpl implements IUserService {
         UserRealnameDto userRealnameDto = new UserRealnameDto();
         userRealnameDto.setUserId(user.getId()).setRealname(user.getRealname());
         return userRealnameDto;
+    }
+
+    @Override
+    public UserWithGroupInfoPage getAllUserGroupByExperId(String experId, int pageIndex, int pageSize) {
+        QueryWrapper<UserGroup> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("exper_id", experId);
+
+        Page<UserGroup> userGroupPage = new Page<>(pageIndex, pageSize, true);
+        IPage<UserGroup> userGroupIPage = userGroupMapper.selectPage(userGroupPage, queryWrapper);
+
+        if(userGroupIPage.getTotal() == 0){
+            throw new NullPointerException("该实验没有加入用户");
+        }
+        List<UserWithGroupInfo> userWithGroupInfoList = userGroupIPage.getRecords().stream()
+                .map(u->{
+                    UserWithGroupInfo userWithGroupInfo = new UserWithGroupInfo();
+                    try{
+                        User user = userMapper.selectById(u.getUserId());
+                        userWithGroupInfo.setUserId(u.getUserId()).setUsername(user.getUsername())
+                                .setRealname(user.getRealname());
+                    }catch (NullPointerException e){
+                        throw new RecordNotExistException("userGroup表中的userId错误");
+                    }
+                    try{
+                        String groupName = groupMapper.selectById(u.getGroupId()).getTitle();
+                        userWithGroupInfo.setGroup(u.getGroupId()).setGroupName(groupName);
+                    }catch (NullPointerException e){
+                        throw new RecordNotExistException("userGroup表中的groupId错误");
+                    }
+                    return userWithGroupInfo;
+                }).collect(Collectors.toList());
+        UserWithGroupInfoPage userWithGroupInfoPage = new UserWithGroupInfoPage();
+        userWithGroupInfoPage.setRecordCount((int)userGroupIPage.getTotal())
+                .setUserWithGroupInfoList(userWithGroupInfoList);
+        return userWithGroupInfoPage;
+    }
+
+    @Transactional
+    @Override
+    public void deleteUserFromExper(String experId, String userId) {
+        Exper exper = experMapper.selectById(experId);
+        if(exper == null){
+            throw new RecordNotExistException("实验id不存在");
+        }
+        if(exper.getState() != 0){
+            throw new DeleteException("只有处于未开始的实验可以移除测试人员");
+        }
+        if(userMapper.selectById(userId) == null){
+            throw new RecordNotExistException("用户id不存在");
+        }
+        String userGroupId = userGroupMapper.selectIdByExperUser(experId, userId);
+        if(StringUtils.isBlank(userGroupId)){
+            throw new RecordNotExistException("该用户并没有分配到目标实验中");
+        }
+        userGroupMapper.deleteById(userGroupId);
     }
 }

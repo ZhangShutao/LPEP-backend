@@ -195,12 +195,7 @@ class UserTest {
     void testPage(){
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("is_admin", 0);
-//        // 分页用法1
-//        Page<User> userPage = new Page<>(1, 2, true);
-//        IPage<User> userIPage = userMapper.selectPage(userPage, queryWrapper);
-//        System.out.println("总页数" + userPage.getPages());
-//        System.out.println("总记录数" + userIPage.getTotal());
-//        userPage.getRecords().forEach(System.out::println);
+
 
 
         // 分页用法2

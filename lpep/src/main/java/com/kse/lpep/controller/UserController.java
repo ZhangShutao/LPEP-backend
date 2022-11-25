@@ -1,11 +1,15 @@
 package com.kse.lpep.controller;
 
 import com.kse.lpep.common.constant.ConstantCode;
+import com.kse.lpep.common.exception.DeleteException;
+import com.kse.lpep.common.exception.RecordNotExistException;
 import com.kse.lpep.common.exception.SaveFileIOException;
 import com.kse.lpep.common.exception.UserLoginException;
 import com.kse.lpep.common.utility.SavingFile;
 import com.kse.lpep.common.utility.ValidUtil;
 import com.kse.lpep.controller.vo.BaseResponse;
+import com.kse.lpep.controller.vo.DeleteFromExperRequest;
+import com.kse.lpep.controller.vo.ExperGetUserPageRequest;
 import com.kse.lpep.controller.vo.UserLoginRequest;
 import com.kse.lpep.service.ITrainingMaterialService;
 import com.kse.lpep.service.IUserService;
@@ -21,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -175,7 +180,57 @@ public class UserController {
         return response;
     }
 
+    /**
+     * 管理员获取指定实验的所有用户和用户分组接口
+     * 成功200；失败210；校验失败300
+     * @return
+     */
+    @PostMapping("getallusergroup")
+    public BaseResponse getAllUserGroup(@RequestBody @Valid ExperGetUserPageRequest request,
+                                        BindingResult bindingResult){
+        BaseResponse response = new BaseResponse();
+        // 1.处理数据校验异常
+        if(bindingResult.hasErrors()){
+            String errorMessage = ValidUtil.getValidErrorMessage(bindingResult);
+            response.setStatus(ConstantCode.VALID_FAIL).setMsg(errorMessage);
+            return response;
+        }
+        try{
+            UserWithGroupInfoPage data = userService.getAllUserGroupByExperId(request.getExperId(),
+                    request.getPageIndex(), request.getPageSize());
+            response.setStatus(ConstantCode.QUERY_SUCCESS).setData(data);
+        }catch (NullPointerException e){
+            response.setStatus(ConstantCode.QUERY_SUCCESS).setMsg(e.getMessage());
+        }catch (RecordNotExistException e1){
+            response.setStatus(ConstantCode.QUERY_FAIL).setMsg(e1.getMessage());
+        }
+        return response;
+    }
 
-
-
+    /**
+     * 管理员从指定实验移除用户接口
+     * 成功204；失败214；校验失败300；
+     * @param request
+     * @param bindingResult
+     * @return
+     */
+    @PostMapping("deletefromexper")
+    public BaseResponse deleteFromExper(@RequestBody @Valid DeleteFromExperRequest request,
+                                        BindingResult bindingResult){
+        BaseResponse response = new BaseResponse();
+        // 1.处理数据校验异常
+        if(bindingResult.hasErrors()){
+            String errorMessage = ValidUtil.getValidErrorMessage(bindingResult);
+            response.setStatus(ConstantCode.VALID_FAIL).setMsg(errorMessage);
+            return response;
+        }
+        // 删除用户
+        try{
+            userService.deleteUserFromExper(request.getExperId(), request.getUserId());
+            response.setStatus(ConstantCode.DELETE_SUCCESS).setMsg("删除成功");
+        }catch (RecordNotExistException | DeleteException e){
+            response.setStatus(ConstantCode.DELETE_FAIL).setMsg(e.getMessage());
+        }
+        return response;
+    }
 }
