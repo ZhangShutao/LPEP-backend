@@ -50,4 +50,11 @@ public interface IUserService {
      */
     int deleteUser(String userId);
 
+    /**
+     * 根据用户账号获取用户真实姓名和id
+     * @param username
+     * @return
+     */
+    UserRealnameDto getRealname(String username);
+
 }

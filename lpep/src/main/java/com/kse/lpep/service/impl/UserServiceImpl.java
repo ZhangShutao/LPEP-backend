@@ -46,7 +46,7 @@ public class UserServiceImpl implements IUserService {
 //        queryWrapper.eq("username", username);
 //        User user = userMapper.selectOne(queryWrapper);
 
-        User user = userMapper.selectAccountPassword(username, password);
+        User user = userMapper.selectByUsername(username);
         // 开始加密模式
         password = DigestUtil.sha256Hex(password);
 //        System.out.println(password);
@@ -193,5 +193,16 @@ public class UserServiceImpl implements IUserService {
     @Override
     public int deleteUser(String userId) {
         return userMapper.deleteById(userId);
+    }
+
+    @Override
+    public UserRealnameDto getRealname(String username) {
+        User user = userMapper.selectByUsername(username);
+        if(user == null){
+            throw new NullPointerException("用户账号信息不存在");
+        }
+        UserRealnameDto userRealnameDto = new UserRealnameDto();
+        userRealnameDto.setUserId(user.getId()).setRealname(user.getRealname());
+        return userRealnameDto;
     }
 }

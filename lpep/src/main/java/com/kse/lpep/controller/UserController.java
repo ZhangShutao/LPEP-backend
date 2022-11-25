@@ -9,11 +9,9 @@ import com.kse.lpep.controller.vo.BaseResponse;
 import com.kse.lpep.controller.vo.UserLoginRequest;
 import com.kse.lpep.service.ITrainingMaterialService;
 import com.kse.lpep.service.IUserService;
-import com.kse.lpep.service.dto.ExperInfo;
-import com.kse.lpep.service.dto.PersonalResult;
-import com.kse.lpep.service.dto.TrainingMaterialInfo;
-import com.kse.lpep.service.dto.UserLoginResult;
+import com.kse.lpep.service.dto.*;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tomcat.util.bcel.Const;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.BindingResult;
@@ -154,20 +152,27 @@ public class UserController {
         return response;
     }
 
-    @PostMapping("/testfile")
-    public BaseResponse testFile(
-            @RequestParam(value = "file") MultipartFile file
-            ){
-        BaseResponse resp = new BaseResponse();
-        String saveName = "1.txt";
-        String savePath = "c:/test";
-        try {
-            SavingFile.saveFile(file, saveName, savePath);
-            resp.setStatus(203);
-        }catch (NullPointerException | SaveFileIOException e){
-            resp.setStatus(213).setMsg(e.getMessage());
+
+    /**
+     * 根据用户账号获取用户真实姓名和id接口
+     * 成功200；失败210；校验错误300
+     * @param username
+     * @return UserRealnameDto
+     */
+    @GetMapping("getrealname")
+    public BaseResponse getUserRealname(String username){
+        BaseResponse response = new BaseResponse();
+        if(StringUtils.isBlank(username)){
+            response.setStatus(ConstantCode.VALID_FAIL).setMsg("用户id为空");
+            return response;
         }
-        return resp;
+        try{
+            UserRealnameDto data = userService.getRealname(username);
+            response.setData(data).setStatus(ConstantCode.QUERY_SUCCESS);
+        }catch (NullPointerException e){
+            response.setStatus(ConstantCode.QUERY_FAIL).setMsg(e.getMessage());
+        }
+        return response;
     }
 
 
