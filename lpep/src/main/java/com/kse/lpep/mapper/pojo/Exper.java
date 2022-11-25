@@ -15,4 +15,6 @@ public class Exper {
     private Timestamp startTime;
     private String confPath;
     private Integer state;
+
+    private String workspace;
 }

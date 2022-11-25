@@ -13,4 +13,6 @@ public interface IJudgeService {
      * @return 修改了状态、输出、错误信息的测试任务对象
      */
     JudgeTask judge(JudgeTask task);
+
+
 }

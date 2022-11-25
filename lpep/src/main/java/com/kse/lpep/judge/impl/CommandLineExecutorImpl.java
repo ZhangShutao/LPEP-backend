@@ -77,10 +77,10 @@ public class CommandLineExecutorImpl implements CommandLineExecutor {
                 if (!(isAlive())) break;
             }
             if (exception == null) {
-                System.out.println(result);
+                // System.out.println(result);
                 return result;
             } else {
-                System.out.println(exception);
+                // System.out.println(exception);
                 throw exception;
             }
         }

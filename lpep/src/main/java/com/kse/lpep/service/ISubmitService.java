@@ -4,6 +4,9 @@ import com.kse.lpep.common.exception.NoSuchRecordException;
 import com.kse.lpep.common.exception.NotAuthorizedException;
 import com.kse.lpep.service.dto.JudgeTask;
 
+import java.io.IOException;
+import java.util.List;
+
 /**
  * @author 张舒韬
  * @since 2022/11/24
@@ -18,8 +21,18 @@ public interface ISubmitService {
      * @throws NoSuchRecordException 没有对应的用户或编程题
      * @throws NotAuthorizedException 用户当前不可以提交该问题
      */
-    JudgeTask submitProgram(String userId, String problemId, String code)
-            throws NoSuchRecordException, NotAuthorizedException;
+    List<JudgeTask> submitProgram(String userId, String problemId, String code)
+            throws NoSuchRecordException, NotAuthorizedException, IOException;
+
+    /**
+     * 更新编程题提交的阶段
+     * @param submitId 提交记录的id
+     * @param status 提交的状态
+     * @return 状态更新成功
+     * @throws NoSuchRecordException 没有指定的提交记录
+     */
+    Boolean updateProgramSubmitState(String submitId, JudgeTask.Status status)
+            throws NoSuchRecordException;
 
     /**
      * 用户放弃对当前问题的求解

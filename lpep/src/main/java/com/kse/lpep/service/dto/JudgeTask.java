@@ -3,9 +3,6 @@ package com.kse.lpep.service.dto;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * @author 张舒韬
  * @since 2022/11/23
@@ -18,7 +15,7 @@ public class JudgeTask {
         CDLP
     }
 
-    public enum State {
+    public enum Status {
         PENDING, // 写入数据库
         RUNNING, // 进入推理机
         JUDGING, // 正在与标准结果比对
@@ -35,30 +32,56 @@ public class JudgeTask {
     private String progSubmitId;
 
     /**
+     * 测试样例序号
+     */
+    private Integer caseNumber;
+
+    /**
      * 用户提交的代码
      */
-    private String code;
+    private String sourcePath;
 
     /**
-     * 从数据库中获得的测试数据输入文件列表，按测试样例的序号排序
+     * 测试数据的输入文件路径
      */
-    private List<String> inputFilePaths;
+    private String inputPath;
 
     /**
-     * 根据用户提交的程序生成的输出
+     * 保存测试数据的标准输出的文件路径
      */
-    private List<String> output;
+    private String standardOutputPath;
 
-    private Type type;
+    /**
+     * 根据用户提交的程序生成的输出，包括语法错误提示
+     */
+    private String output;
 
-    private State state;
+    /**
+     * 错误信息
+     */
+    private String errorMsg;
 
-    // TODO 添加 progSubmitId
-    public JudgeTask(String code, Type type) {
-        this.code = code;
-        this.type = type;
-        this.state = State.PENDING;
-        this.inputFilePaths = new ArrayList<>();
-        this.output = new ArrayList<>();
+    /**
+     * 运行命令
+     */
+    private String cmd;
+
+    /**
+     * 运行时间上限，单位为秒
+     */
+    private Integer timeLimit;
+
+    private Status status;
+
+    public JudgeTask(String progSubmitId, Integer caseNumber,
+                     String sourcePath, String inputPath, String standardOutputPath, String output,
+                     String cmd, Integer timeLimit) {
+        this.progSubmitId = progSubmitId;
+        this.sourcePath = sourcePath;
+        this.inputPath = inputPath;
+        this.standardOutputPath = standardOutputPath;
+        this.output = output;
+        this.cmd = cmd;
+        this.timeLimit = timeLimit;
     }
 }

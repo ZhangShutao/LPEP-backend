@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+import java.io.File;
 import java.io.Serializable;
+import java.util.StringJoiner;
 
 @Data
 @Accessors(chain = true)
@@ -16,5 +18,13 @@ public class Case implements Serializable {
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
     private String progQuestionId;
-    private String number;
+    private Integer number;
+
+    public String generateInputPath(String inputDir) {
+        return inputDir + File.pathSeparator  + id + ".in";
+    }
+
+    public String generateOutputPath(String outputDir) {
+        return outputDir + File.pathSeparator + id + ".out";
+    }
 }

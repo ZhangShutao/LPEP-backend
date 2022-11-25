@@ -12,4 +12,10 @@ public class UserGroup {
     private String userId;
     private String groupId;
     private String experId;
+
+    public UserGroup(String userId, String groupId, String experId) {
+        this.userId = userId;
+        this.groupId = groupId;
+        this.experId = experId;
+    }
 }

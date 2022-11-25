@@ -37,8 +37,7 @@ public class AdminServiceImpl implements IAdminService {
         if(userGroupMapper.selectOne(queryWrapper) != null){
             return 0;
         }
-        UserGroup userGroup = new UserGroup();
-        userGroup.setUserId(userId).setGroupId(groupId).setExperId(experId);
+        UserGroup userGroup = new UserGroup(userId, groupId, experId);
         return userGroupMapper.insert(userGroup);
     }
 }
