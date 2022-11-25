@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 
+
 @Data
 @Accessors(chain = true)
 @TableName("t_user_group")
@@ -18,4 +19,11 @@ public class UserGroup implements Serializable {
     private String userId;
     private String groupId;
     private String experId;
+
+    public UserGroup(String userId, String groupId, String experId) {
+        this.userId = userId;
+        this.groupId = groupId;
+        this.experId = experId;
+    }
+
 }

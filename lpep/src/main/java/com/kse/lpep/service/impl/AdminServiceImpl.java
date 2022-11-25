@@ -65,8 +65,7 @@ public class AdminServiceImpl implements IAdminService {
         if(userGroupMapper.selectOne(queryWrapper) != null){
             throw new ElementDuplicateException("用户已存在");
         }
-        UserGroup userGroup = new UserGroup();
-        userGroup.setUserId(userId).setGroupId(groupId).setExperId(experId);
+        UserGroup userGroup = new UserGroup(userId, groupId, experId);
         return userGroupMapper.insert(userGroup);
     }
 

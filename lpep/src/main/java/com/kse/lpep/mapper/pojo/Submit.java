@@ -20,4 +20,14 @@ public class Submit implements Serializable {
     private String questionId;
     private String userAnswer;
     private Timestamp submitTime;
+
+    public Submit() {
+
+    }
+
+    public Submit(String userId, String questionId, String answer) {
+        this.userId = userId;
+        this.questionId = questionId;
+        this.userAnswer = answer;
+    }
 }

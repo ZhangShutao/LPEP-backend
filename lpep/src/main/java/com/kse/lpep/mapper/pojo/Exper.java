@@ -12,8 +12,13 @@ import java.sql.Timestamp;
 @Data
 @Accessors(chain = true)
 @TableName("t_exper")
-public class Exper implements Serializable {
+public class Exper implements Serializable{
     private static final long serialVersionUID = -4973091903659148957L;
+
+    public static final Integer PREPARING = 0;
+    public static final Integer ENDED = 1;
+    public static final Integer RUNNING = 2;
+
     @TableId(type = IdType.ASSIGN_UUID)
     private String id;
     private String title;

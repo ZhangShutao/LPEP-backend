@@ -19,8 +19,13 @@ public class ProgQuestion implements Serializable {
     private String phaseId;
     private Integer number;
     private String content;   //映射表中的text字段
+
+    @Deprecated
     private String testInputPath;
+
+    @Deprecated
     private String testOutputPath;
+
     private Timestamp createTime;
     private String groupId;
     private String experId;
