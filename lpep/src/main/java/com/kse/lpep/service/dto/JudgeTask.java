@@ -1,7 +1,11 @@
 package com.kse.lpep.service.dto;
 
+import com.kse.lpep.mapper.pojo.ProgSubmit;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author 张舒韬
@@ -25,6 +29,17 @@ public class JudgeTask {
         TIME_LIMIT_EXCEEDED,
         SYNTAX_ERROR
     }
+
+    public static final Map<Status, Integer> STATUS_MAP = new HashMap<Status,Integer>(){{
+        put(Status.PENDING, ProgSubmit.NOT_TESTED);
+        put(Status.RUNNING, ProgSubmit.TESTING);
+        put(Status.JUDGING, ProgSubmit.TESTING);
+        put(Status.ABORTED, ProgSubmit.UNKNOWN_ERROR);
+        put(Status.ACCEPTED, ProgSubmit.ACCEPTED);
+        put(Status.WRONG, ProgSubmit.WRONG_ANSWER);
+        put(Status.TIME_LIMIT_EXCEEDED, ProgSubmit.TIME_LIMIT_EXCEEDED);
+        put(Status.SYNTAX_ERROR, ProgSubmit.SYNTAX_ERROR);
+    }};
 
     /**
      * 本次任务对应的数据库提交记录的id

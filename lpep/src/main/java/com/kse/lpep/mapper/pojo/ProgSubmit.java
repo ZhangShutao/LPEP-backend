@@ -50,6 +50,11 @@ public class ProgSubmit {
      */
     public final static Integer UNKNOWN_ERROR = 6;
 
+    /**
+     * 用户放弃对本题的解答
+     */
+    public final static Integer ABORTED = 7;
+
 
     @TableId(value = "id", type = IdType.ASSIGN_UUID)
     private String id;

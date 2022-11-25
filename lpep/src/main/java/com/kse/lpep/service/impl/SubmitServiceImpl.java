@@ -144,12 +144,14 @@ public class SubmitServiceImpl implements ISubmitService {
 
     @Override
     public Boolean updateProgramSubmitState(String submitId, JudgeTask.Status status) throws NoSuchRecordException {
-        return null;
+        return progSubmitMapper.updateStatusById(submitId, JudgeTask.STATUS_MAP.get(status));
     }
 
     @Override
     public Boolean abortProgram(String userId, String problemId) throws NoSuchRecordException, NotAuthorizedException {
-        return null;
+        ProgSubmit submit = new ProgSubmit(userId, problemId, ProgSubmit.ABORTED, "");
+        int ret = progSubmitMapper.insert(submit);
+        return ret == 1;
     }
 
     @Override
