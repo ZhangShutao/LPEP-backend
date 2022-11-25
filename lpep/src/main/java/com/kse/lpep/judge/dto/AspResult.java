@@ -14,12 +14,9 @@ import java.util.*;
 @Getter
 @Setter
 @EqualsAndHashCode
-public class AspModel {
+public class AspResult {
     private boolean satisfiable;
 
-    private boolean syntaxError;
-
-    private List<String> syntaxMsg;
 
     private Set<AnswerSet> models;
 
@@ -36,36 +33,22 @@ public class AspModel {
         }
     }
 
-    public static AspModel parseAspModel(String str) {
+    public static AspResult parseAspModel(String str) {
         // System.out.println("parsing");
         if (str.contains("UNSATISFIABLE")) {
-            return new AspModel(false, str);
+            return new AspResult(false, str);
         } else if (str.contains("SATISFIABLE")) {
-            return new AspModel(true, str);
+            return new AspResult(true, str);
         } else {
             throw new RuntimeException("解析ASP输出时发生语法错误");
         }
     }
 
-    public static List<String> parseSyntaxError(String str) {
-        String[] lines = str.split(System.lineSeparator());
-        List<String> errors = new ArrayList<>();
-        for (String line : lines) {
-            if (line.contains("syntax error")) {
-                errors.add(line);
-            }
-        }
-        return errors;
-    }
-
-    public AspModel(Boolean satisfiable, String str) {
-        if (!satisfiable) {
-            this.satisfiable = false;
-            this.models = new HashSet<>();
-        } else {
-            this.satisfiable = true;
+    public AspResult(Boolean satisfiable, String str) {
+        this.satisfiable = satisfiable;
+        this.models = new HashSet<>();
+        if (satisfiable)  {
             String[] lines = str.split(System.lineSeparator());
-            this.models = new HashSet<>();
             for (int i = 0; i != lines.length; ++i) {
                 if (lines[i].startsWith("Answer:")) {
                     AnswerSet answerSet = new AnswerSet(lines[i + 1]);

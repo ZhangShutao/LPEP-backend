@@ -2,6 +2,8 @@ package com.kse.lpep.service.impl;
 
 import com.kse.lpep.config.WebConfig;
 import com.kse.lpep.judge.SolverCallable;
+import com.kse.lpep.judge.dto.AspResult;
+import com.kse.lpep.judge.dto.CdlpResult;
 import com.kse.lpep.mapper.IProgSubmitMapper;
 import com.kse.lpep.mapper.pojo.ProgSubmit;
 import com.kse.lpep.service.IJudgeService;
@@ -58,11 +60,15 @@ public class JudgeServiceImpl implements IJudgeService {
     }
 
     private Boolean isAspResultCorrect(String stdOutput, String userOutput) {
-        return false;
+        AspResult stdResult = AspResult.parseAspModel(stdOutput);
+        AspResult userResult = AspResult.parseAspModel(userOutput);
+        return stdResult.equals(userResult);
     }
 
     private Boolean isCdlpResultCorrect(String stdOutput, String userOutput) {
-        return false;
+        CdlpResult stdResult = CdlpResult.parseCdlpResult(stdOutput);
+        CdlpResult userResult = CdlpResult.parseCdlpResult(userOutput);
+        return stdResult.equals(userResult);
     }
 
     @Override
