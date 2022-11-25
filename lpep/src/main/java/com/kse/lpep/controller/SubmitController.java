@@ -14,10 +14,12 @@ import com.kse.lpep.service.dto.JudgeTask;
 import com.kse.lpep.utils.LpepFileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.validation.Valid;
 import java.io.*;
 import java.util.List;
 
@@ -90,8 +92,21 @@ public class SubmitController {
      * @param request 用户请求
      * @return 请求执行结果
      */
-    public BaseResponse abortProgram(@RequestBody AbortProblemRequest request) {
-        return new BaseResponse();
+    public BaseResponse abortProgram(@RequestBody @Valid AbortProblemRequest request, BindingResult bindingResult) {
+        BaseResponse response = new BaseResponse();
+        if (bindingResult.hasErrors()) {
+            String message = bindingResult.toString();
+            response.setStatus(ConstantCode.VALID_FAIL).setMsg(message);
+        } else {
+            try {
+                if (submitService.abortProgram(request.getUserId(), request.getProblemId())) {
+                    response.setStatus(ConstantCode.SUBMIT_SUCCESS);
+                }
+            } catch (NotAuthorizedException | NoSuchRecordException e) {
+                response.setStatus(ConstantCode.VALID_FAIL).setMsg(e.getMessage());
+            }
+        }
+        return response;
     }
 
     /**
@@ -99,8 +114,24 @@ public class SubmitController {
      * @param request 用户请求
      * @return 请求执行结果
      */
-    public BaseResponse submitQuestionnaire(@RequestBody QuestionnaireSubmitRequest request) {
-        return new BaseResponse();
+    public BaseResponse submitQuestionnaire(@RequestBody @Valid QuestionnaireSubmitRequest request,
+                                            BindingResult bindingResult) {
+        BaseResponse response = new BaseResponse();
+        if (bindingResult.hasErrors()) {
+            String message = bindingResult.toString();
+            response.setStatus(ConstantCode.VALID_FAIL).setMsg(message);
+        } else {
+            try {
+                if (submitService.submitQuestionnaire(request.getUserId(), request.getPhaseId(), request.getAnswer())) {
+                    response.setStatus(ConstantCode.SUBMIT_SUCCESS);
+                } else {
+                    response.setStatus(ConstantCode.SUBMIT_FAIL).setMsg("未知错误");
+                }
+            } catch (NoSuchRecordException | NotAuthorizedException e) {
+                response.setStatus(ConstantCode.VALID_FAIL).setMsg(e.getMessage());
+            }
+        }
+        return response;
     }
 
     private JudgeResult writeErrorToResult(JudgeTask task) {

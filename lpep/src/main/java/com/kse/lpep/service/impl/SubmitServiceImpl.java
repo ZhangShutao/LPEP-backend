@@ -205,7 +205,7 @@ public class SubmitServiceImpl implements ISubmitService {
             List<QuestionnaireItemReply> replies = objectMapper.readValue(answer, new TypeReference<List<QuestionnaireItemReply>>() {});
             for (QuestionnaireItemReply reply : replies) {
                 if (questionMapper.selectById(reply.getQuestionId()) == null) {
-                    throw new NoSuchRecordException(String.format("问题 %s不存在", reply.getQuestionId()));
+                    throw new NoSuchRecordException(String.format("问题 %s 不存在", reply.getQuestionId()));
                 } else {
                     Submit submit = new Submit(userId, reply.getQuestionId(), reply.getReply());
                     int ret = submitMapper.insert(submit);
