@@ -111,7 +111,8 @@ public class ExperServiceImpl implements IExperService {
         if(phaseNumber == 1){
             // 创建一个对象
             UserFootprint userFootprint = new UserFootprint();
-            userFootprint.setUserId(userId).setExperId(experId).setGroupId(groupId).setCurrentPhaseNumber(1);
+            userFootprint.setUserId(userId).setExperId(experId).setGroupId(groupId).setCurrentPhaseNumber(1)
+                    .setIsEnd(0);
             userFootprintMapper.insert(userFootprint);
         }else{
             // 修改状态，其中非编程题当前题号为null，实验不结束
@@ -158,7 +159,7 @@ public class ExperServiceImpl implements IExperService {
                 UserFootprint userFootprint = new UserFootprint();
                 // 这里没有插入组别
                 userFootprint.setUserId(userId).setExperId(experId).setCurrentPhaseNumber(1)
-                        .setCurrentQuestionNumber(1);
+                        .setCurrentQuestionNumber(1).setIsEnd(0);
                 userFootprintMapper.insert(userFootprint);
             }
             modifyUserFootprint(userId, experId, phaseNumber, questionNumber, 0);
@@ -298,7 +299,7 @@ public class ExperServiceImpl implements IExperService {
         QueryWrapper<Submit> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("user_id", userId);
         if(submitMapper.selectList(queryWrapper).size() != 0){
-            throw new ElementDuplicateException("提交用户存在，提交错误");
+            throw new ElementDuplicateException("用户已经提交过该部分题，提交错误");
         }
         // 去重
         Set<String> idSet = new HashSet<>();
@@ -315,6 +316,8 @@ public class ExperServiceImpl implements IExperService {
             submit.setUserId(userId).setQuestionId(u.getQuestionId()).setUserAnswer(u.getReply());
             submitMapper.insert(submit);
         });
+        // 修改用户做题足迹
+
         return userId;
     }
 }

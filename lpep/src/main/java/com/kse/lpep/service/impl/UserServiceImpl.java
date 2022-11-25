@@ -112,8 +112,10 @@ public class UserServiceImpl implements IUserService {
                 // 情况1：存在实验中断
                 String currentStartTime = new SimpleDateFormat("yyyy-MM-dd").format(userFootprint.getStartTime());
                 experInfo.setCurrentPhaseNumber(userFootprint.getCurrentPhaseNumber())
-                        .setCurrentStartTime(currentStartTime)
-                        .setCurrentQuestionNumber(userFootprint.getCurrentQuestionNumber()).setState(1);
+                        .setCurrentStartTime(currentStartTime).setState(1);
+                if(userFootprint.getCurrentQuestionNumber() != null){
+                    experInfo.setCurrentQuestionNumber(userFootprint.getCurrentQuestionNumber());
+                }
                 isExistBreak = true;
             }
             // 情况2：正常情况，正常状态为1，存在中断状态为2

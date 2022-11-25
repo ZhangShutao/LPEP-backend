@@ -92,10 +92,6 @@ public class UserController {
         return response;
     }
 
-    /*
-      用户查看待测试的实验
-      用户可能存在实验中断的实验
-     */
 
     /**
      * 用户查看待进行的实验接口
@@ -195,12 +191,15 @@ public class UserController {
             response.setStatus(ConstantCode.VALID_FAIL).setMsg(errorMessage);
             return response;
         }
+        UserWithGroupInfoPage data = new UserWithGroupInfoPage();
+        data.setRecordCount(0);
         try{
-            UserWithGroupInfoPage data = userService.getAllUserGroupByExperId(request.getExperId(),
+            data = userService.getAllUserGroupByExperId(request.getExperId(),
                     request.getPageIndex(), request.getPageSize());
             response.setStatus(ConstantCode.QUERY_SUCCESS).setData(data);
         }catch (NullPointerException e){
-            response.setStatus(ConstantCode.QUERY_SUCCESS).setMsg(e.getMessage());
+            data.setUserWithGroupInfoList(new ArrayList<>());
+            response.setStatus(ConstantCode.QUERY_SUCCESS).setMsg(e.getMessage()).setData(data);
         }catch (RecordNotExistException e1){
             response.setStatus(ConstantCode.QUERY_FAIL).setMsg(e1.getMessage());
         }
