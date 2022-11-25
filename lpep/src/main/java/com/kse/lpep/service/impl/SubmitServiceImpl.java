@@ -1,11 +1,15 @@
 package com.kse.lpep.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kse.lpep.common.exception.NoSuchRecordException;
 import com.kse.lpep.common.exception.NotAuthorizedException;
 import com.kse.lpep.mapper.*;
 import com.kse.lpep.mapper.pojo.*;
 import com.kse.lpep.service.ISubmitService;
 import com.kse.lpep.service.dto.JudgeTask;
+import com.kse.lpep.service.dto.QuestionnaireItemReply;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -33,6 +37,9 @@ public class SubmitServiceImpl implements ISubmitService {
 
     @Autowired
     IProgQuestionMapper progQuestionMapper;
+
+    @Autowired
+    IQuestionMapper questionMapper;
 
     @Autowired
     IPhaseMapper phaseMapper;
@@ -63,14 +70,46 @@ public class SubmitServiceImpl implements ISubmitService {
 
     /**
      * 检查用户是否有提交或修改某个编程问题的权限
-     * @param user 用户对象
-     * @param progQuestion 编程问题对象
+     * @param userId 用户对象
+     * @param progQuestionId 编程问题对象
      * @return 有权限则返回true
      * @throws NoSuchRecordException 问题所属的群组或实验不存在
      */
-    private Boolean isUserAuthorizedProgQuestion(User user, ProgQuestion progQuestion) throws NoSuchRecordException {
-        UserGroup userGroup = userGroupMapper.getByUserIdAndGroupId(user.getId(), progQuestion.getGroupId());
-        return userGroup != null;
+    private Boolean isUserAuthorizedProgQuestion(String userId, String progQuestionId) throws NoSuchRecordException {
+        User user = userMapper.selectById(userId);
+        ProgQuestion progQuestion = progQuestionMapper.selectById(progQuestionId);
+        if (user == null) {
+            throw new NoSuchRecordException(String.format("用户 %s 不存在", userId));
+        } else if (progQuestion == null) {
+            throw new NoSuchRecordException(String.format("编程题 %s 不存在", progQuestionId));
+        } else {
+            UserGroup userGroup = userGroupMapper.getByUserIdAndGroupId(userId, progQuestion.getGroupId());
+            Exper exper = experMapper.selectById(progQuestion.getExperId());
+            return (userGroup != null) && (exper.getState().equals(Exper.RUNNING));
+        }
+    }
+
+    /**
+     * 检查用户是否有提交当前问卷阶段的权限
+     * @param userId 用户id
+     * @param phaseId 问卷阶段id
+     * @return 用户有提交权限则返回true，否则返回false
+     * @throws NoSuchRecordException 用户或阶段不存在，或该阶段不是问卷阶段
+     */
+    private Boolean isUserAuthorizedQuestionnaire(String userId, String phaseId) throws NoSuchRecordException {
+        User user = userMapper.selectById(userId);
+        Phase phase = phaseMapper.selectById(phaseId);
+        if (user == null) {
+            throw new NoSuchRecordException(String.format("用户 %s 不存在", userId));
+        } else if (phase == null) {
+            throw new NoSuchRecordException(String.format("阶段 %s 不存在", phaseId));
+        } else if (!phase.getType().equals(Phase.QUESTIONNAIRE)) {
+            throw new NoSuchRecordException(String.format("阶段 %s 不是问卷调查阶段", phaseId));
+        } else {
+            List<UserGroup> userGroups = userGroupMapper.getByUserIdAndExperId(userId, phase.getExperId());
+            Exper exper = experMapper.selectById(phase.getExperId());
+            return (!userGroups.isEmpty()) && (exper.getState().equals(Exper.RUNNING));
+        }
     }
 
     /**
@@ -126,36 +165,58 @@ public class SubmitServiceImpl implements ISubmitService {
     public List<JudgeTask> submitProgram(String userId, String problemId, String code)
             throws NoSuchRecordException, NotAuthorizedException, IOException {
 
-        User user = userMapper.selectById(userId);
-        ProgQuestion progQuestion = progQuestionMapper.selectById(problemId);
-        if (user == null) {
-            throw new NoSuchRecordException(String.format("用户id \"%s\" 不存在", userId));
+        if (!isUserAuthorizedProgQuestion(userId, problemId)) {
+            throw new NotAuthorizedException(String.format("用户 %s 没有提交问题 %s 的权限", userId, problemId));
+        } else {
+            ProgSubmit submit = new ProgSubmit(userId, problemId, ProgSubmit.NOT_TESTED, code);
+            progSubmitMapper.insert(submit);
+
+            return generateJudgeTasks(submit);
         }
-        if (progQuestion == null) {
-            throw new NoSuchRecordException(String.format("编程题 \"%s\" 不存在", problemId));
-        }
-
-
-        ProgSubmit submit = new ProgSubmit(user.getId(), progQuestion.getId(), ProgSubmit.NOT_TESTED, code);
-        progSubmitMapper.insert(submit);
-
-        return generateJudgeTasks(submit);
     }
 
     @Override
     public Boolean updateProgramSubmitState(String submitId, JudgeTask.Status status) throws NoSuchRecordException {
-        return progSubmitMapper.updateStatusById(submitId, JudgeTask.STATUS_MAP.get(status));
+        if (progSubmitMapper.selectById(submitId) == null) {
+            throw new NoSuchRecordException("编程题提交记录不存在");
+        } else {
+            return progSubmitMapper.updateStatusById(submitId, JudgeTask.STATUS_MAP.get(status));
+        }
     }
 
     @Override
     public Boolean abortProgram(String userId, String problemId) throws NoSuchRecordException, NotAuthorizedException {
-        ProgSubmit submit = new ProgSubmit(userId, problemId, ProgSubmit.ABORTED, "");
-        int ret = progSubmitMapper.insert(submit);
-        return ret == 1;
+        if (!isUserAuthorizedProgQuestion(userId, problemId)) {
+            throw new NotAuthorizedException(String.format("用户 %s 没有放弃问题 %s 的权限", userId, problemId));
+        } else {
+            ProgSubmit submit = new ProgSubmit(userId, problemId, ProgSubmit.ABORTED, "");
+            int ret = progSubmitMapper.insert(submit);
+            return ret == 1;
+        }
     }
 
     @Override
     public Boolean submitQuestionnaire(String userId, String phaseId, String answer) throws NoSuchRecordException, NotAuthorizedException {
-        return null;
+        if (!isUserAuthorizedQuestionnaire(userId, phaseId)) {
+            throw new NotAuthorizedException(String.format("用户 %s 没有参与问卷阶段 %s 的权限", userId, phaseId));
+        }
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            List<QuestionnaireItemReply> replies = objectMapper.readValue(answer, new TypeReference<List<QuestionnaireItemReply>>() {});
+            for (QuestionnaireItemReply reply : replies) {
+                if (questionMapper.selectById(reply.getQuestionId()) == null) {
+                    throw new NoSuchRecordException(String.format("问题 %s不存在", reply.getQuestionId()));
+                } else {
+                    Submit submit = new Submit(userId, reply.getQuestionId(), reply.getReply());
+                    int ret = submitMapper.insert(submit);
+                    if (ret != 1) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

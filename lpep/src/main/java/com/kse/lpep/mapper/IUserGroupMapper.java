@@ -19,4 +19,11 @@ public interface IUserGroupMapper extends BaseMapper<UserGroup> {
      */
     @Select("select * from t_user_group where user_id=#{userId} and group_id=#{groupId}")
     UserGroup getByUserIdAndGroupId(@Param("userId") String userId, @Param("groupId") String groupId);
+
+    @Select("select * from `t_user_group` where `user_id`=#{userId} and `exper_id`=#{experId}")
+    List<UserGroup> getByUserIdAndExperId(@Param("userId") String userId, @Param("experId") String experId);
+
+    @Select("select * from `t_user_group` where `user_id`=#{userId}")
+    List<UserGroup> getByUserId(@Param("userId") String userId);
+
 }
