@@ -49,9 +49,9 @@ public class JudgeServiceImpl implements IJudgeService {
     private Boolean isJudgeResultCorrect(JudgeTask task) throws IOException {
         if (task.getOutput() != null) {
             String standardOutput = LpepFileUtils.readFile(task.getStandardOutputPath());
-            if (standardOutput.startsWith("#ASP")) {
+            if (standardOutput.startsWith("%ASP")) {
                 return isAspResultCorrect(standardOutput, task.getOutput());
-            } else if (standardOutput.startsWith("#CDLP")) {
+            } else if (standardOutput.startsWith("%CDLP")) {
                 return isCdlpResultCorrect(standardOutput, task.getOutput());
             }
 //            return !task.getOutput().contains("Unsatisfiable");

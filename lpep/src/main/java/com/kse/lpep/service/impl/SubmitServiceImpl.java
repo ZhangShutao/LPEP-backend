@@ -1,5 +1,6 @@
 package com.kse.lpep.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,7 +32,6 @@ import java.util.List;
  */
 @Service
 @Slf4j
-@Transactional
 @Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE)
 public class SubmitServiceImpl implements ISubmitService {
 
@@ -67,6 +67,9 @@ public class SubmitServiceImpl implements ISubmitService {
 
     @Autowired
     ISubmitMapper submitMapper;
+
+    @Autowired
+    IUserFootprintMapper userFootprintMapper;
 
     /**
      * 检查用户是否有提交或修改某个编程问题的权限
@@ -218,5 +221,20 @@ public class SubmitServiceImpl implements ISubmitService {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void modifyProgUserFootprint(String userId, String questionId) {
+        Question question = questionMapper.selectById(questionId);
+        String experId = question.getExperId();
+        int currentQuestionNumber = question.getNumber();
+        String phaseId = question.getPhaseId();
+        int currentPhaseNumber = phaseMapper.selectById(phaseId).getPhaseNumber();
+        UpdateWrapper<UserFootprint> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq("user_id", userId).eq("exper_id", experId);
+        UserFootprint userFootprint = new UserFootprint();
+        userFootprint.setCurrentPhaseNumber(currentPhaseNumber)
+                .setCurrentQuestionNumber(currentQuestionNumber + 1);
+        userFootprintMapper.update(userFootprint, updateWrapper);
     }
 }

@@ -1,22 +1,28 @@
 package com.kse.lpep;
 
+import cn.hutool.crypto.digest.DigestUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.exceptions.MybatisPlusException;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.kse.lpep.mapper.IExperMapper;
-import com.kse.lpep.mapper.IUserFootprintMapper;
-import com.kse.lpep.mapper.IUserMapper;
-import com.kse.lpep.mapper.pojo.Exper;
-import com.kse.lpep.mapper.pojo.User;
-import com.kse.lpep.mapper.pojo.UserFootprint;
+import com.kse.lpep.mapper.*;
+import com.kse.lpep.mapper.pojo.*;
+import com.kse.lpep.service.dto.QueryTrainingMaterialInfo;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.object.UpdatableSqlQuery;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @SpringBootTest
@@ -189,12 +195,7 @@ class UserTest {
     void testPage(){
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("is_admin", 0);
-//        // 分页用法1
-//        Page<User> userPage = new Page<>(1, 2, true);
-//        IPage<User> userIPage = userMapper.selectPage(userPage, queryWrapper);
-//        System.out.println("总页数" + userPage.getPages());
-//        System.out.println("总记录数" + userIPage.getTotal());
-//        userPage.getRecords().forEach(System.out::println);
+
 
 
         // 分页用法2
@@ -204,5 +205,98 @@ class UserTest {
         System.out.println("总记录数" + mapIPage.getTotal());
         mapIPage.getRecords().forEach(System.out::println);
     }
+
+
+    @Autowired
+    private ICaseMapper caseMapper;
+    // 测试插入数据后原数据状态
+    // 测试结果，使用mp自带的方式生成uuid可以拿到主键，删除数据库中的uuid生成
+    @Test
+    void testInsertStatus(){
+        Case myCase = new Case();
+        myCase.setNumber(1);
+        int x = caseMapper.insert(myCase);
+        System.out.println(x);
+        System.out.println(myCase.getId());
+    }
+
+
+
+    // 测试时间转换
+    @Test
+    void testTime(){
+        String startTime = "1999-08-12 15:35:54";
+        Timestamp myStartTime = Timestamp.valueOf(startTime);
+        System.out.println(myStartTime);
+    }
+
+    @Test
+    void testUpdate(){
+        Case myCase = new Case();
+        myCase.setId("55af1db609b36be80ad8c455fffc8b0").setProgQuestionId("171");
+        caseMapper.updateById(myCase);
+    }
+
+    @Test
+    void testStringUtil(){
+        String a = "asd";
+        String b = "asd";
+        System.out.println(StringUtils.equals(a, b));
+    }
+
+    // 测试查询条件中加入不等于某个结合这个条件
+    // 测试成功，需要合理的使用and和or的连接
+    // notin需要size不为0
+    @Test
+    void testNotIn(){
+        List<String> experIds = new ArrayList<>();
+        experIds.add("34f6879f61c911edab7a2cf05decb14f");
+        experIds.add("a749bcfc6a0b11ed8ed92cf05decb14f");
+
+        LambdaQueryWrapper<Exper> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.and(wp->wp.eq(Exper::getState, 0).notIn(Exper::getId, experIds))
+                .or(wp->wp.eq(Exper::getState, 2).notIn(Exper::getId, experIds));
+
+
+        List<Exper> expers = experMapper.selectList(lambdaQueryWrapper);
+        expers.stream().forEach(System.out::println);
+    }
+
+    // 测试加密
+    // 测试成功
+    @Test
+    void testEncode(){
+        String s1 = "12345qw";
+        String s2 = "214defwdaw";
+        String s3 = "12345qw";
+        String encode1 = DigestUtil.sha256Hex(s1);
+        String encode2 = DigestUtil.sha256Hex(s2);
+        String encode3 = DigestUtil.sha256Hex(s3);
+        System.out.println(encode1);
+        System.out.println(encode2);
+        System.out.println(encode3);
+    }
+
+    // 路径测试
+    // 测试结果：mkdir只会创建一层目录，上层目录不存在则创建失败，mkdirs才是正解
+    @Test
+    void testSpace(){
+        String fileSeparator = FileSystems.getDefault().getSeparator();
+        String dirname = "c://tmp/sb";
+        File d = new File(dirname);
+        d.mkdirs();
+    }
+
+    @Autowired
+    private IUserGroupMapper userGroupMapper;
+    // mapper层写select方法的测试
+    @Test
+    void testMySelect(){
+//        User user = userMapper.selectAccountPassword("22222", "22222");
+//        System.out.println(user.getRealname());
+        userGroupMapper.selectByUserId("2045747668c211ed8ed92cf05decb14f").forEach(System.out::println);
+
+    }
+
 
 }

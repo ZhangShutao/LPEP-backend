@@ -60,6 +60,21 @@ public interface IExperService {
      * 列举所有求解器的类型
      * @return
      */
-    List<String> listRunnerType();
+    List<RunnerInfo> listRunnerType();
+
+    /**
+     * 分页查询用户未参与的实验
+     */
+    ExperInfoPage queryNotInExpers(String userId, int pageIndex, int pageSize);
+
+    /**
+     * 根据实验id查询组别
+     */
+    List<GroupInfo> queryAllGroups(String experId);
+
+    /*
+    非编程题提交
+     */
+    String submitNonProg(String userId, String experId, int phaseNumber, List<UserAnswerDto> answers);
 
 }
