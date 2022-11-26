@@ -10,6 +10,7 @@ import com.kse.lpep.mapper.*;
 import com.kse.lpep.mapper.pojo.*;
 import com.kse.lpep.service.ISubmitService;
 import com.kse.lpep.service.dto.JudgeTask;
+import com.kse.lpep.service.dto.ProgramSubmitInfo;
 import com.kse.lpep.service.dto.QuestionnaireItemReply;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -236,5 +238,25 @@ public class SubmitServiceImpl implements ISubmitService {
         userFootprint.setCurrentPhaseNumber(currentPhaseNumber)
                 .setCurrentQuestionNumber(currentQuestionNumber + 1);
         userFootprintMapper.update(userFootprint, updateWrapper);
+    }
+
+    @Override
+    public List<ProgramSubmitInfo> listProgramSubmitInfo(String userId, String questionId, int pageIndex, int pageSize)
+            throws NotAuthorizedException, NoSuchRecordException {
+        if (!isUserAuthorizedProgQuestion(userId, questionId)) {
+            throw new NotAuthorizedException(String.format("用户 %s 没有解答问题 %s 的权限", userId, questionId));
+        }
+
+        List<ProgSubmit> submits = progSubmitMapper.pageFindByUserIdAndProgQuestionIdOrderBySubmitTimeDesc(
+                userId, questionId, pageIndex, pageSize);
+
+        List<ProgramSubmitInfo> submitInfoList = new ArrayList<>();
+        for (ProgSubmit submit : submits) {
+            String submitTime = new SimpleDateFormat("yyyy-MM-dd").format(submit.getSubmitTime());
+            submitInfoList.add(new ProgramSubmitInfo(submit.getId(),
+                    ProgramSubmitInfo.statusMap.get(submit.getStatus()),
+                    submitTime));
+        }
+        return submitInfoList;
     }
 }

@@ -1,5 +1,6 @@
 package com.kse.lpep.controller;
 
+import com.fasterxml.jackson.databind.ser.Serializers;
 import com.kse.lpep.common.ConstantCode;
 import com.kse.lpep.common.exception.NoSuchRecordException;
 import com.kse.lpep.common.exception.NotAuthorizedException;
@@ -13,14 +14,15 @@ import com.kse.lpep.service.IJudgeService;
 import com.kse.lpep.service.ISubmitService;
 import com.kse.lpep.service.dto.JudgeResult;
 import com.kse.lpep.service.dto.JudgeTask;
+import com.kse.lpep.service.dto.ProgramSubmitInfo;
+import com.kse.lpep.service.dto.ProgramSubmitInfoPage;
 import com.kse.lpep.utils.LpepFileUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.io.*;
@@ -104,9 +106,10 @@ public class SubmitController {
      * 对用户放弃编程题请求的响应
      * @param request 用户请求
      * @return 请求执行结果
+     * @see AbortProblemRequest
      */
     @Transactional
-    @PostMapping("submitabort")
+    @PostMapping("submit_abort")
     public BaseResponse abortProgram(@RequestBody @Valid AbortProblemRequest request, BindingResult bindingResult) {
         BaseResponse response = new BaseResponse();
         if (bindingResult.hasErrors()) {
@@ -117,6 +120,8 @@ public class SubmitController {
                 if (submitService.abortProgram(request.getUserId(), request.getProblemId())) {
                     submitService.modifyProgUserFootprint(request.getUserId(), request.getProblemId());
                     response.setStatus(ConstantCode.SUBMIT_SUCCESS);
+                } else {
+                    response.setStatus(ConstantCode.SUBMIT_FAIL);
                 }
             } catch (NotAuthorizedException | NoSuchRecordException e) {
                 response.setStatus(ConstantCode.VALID_FAIL).setMsg(e.getMessage());
@@ -151,6 +156,36 @@ public class SubmitController {
         return response;
     }
 
+    /**
+     * 分页查询一个用户对指定问题的所有提交记录
+     * @param userId 用户id
+     * @param questionId 问题id
+     * @param pageIndex 页码
+     * @param pageSize 页面大小
+     * @return 包含ProgramSubmitInfoPage的响应
+     * @see com.kse.lpep.service.dto.ProgramSubmitInfo
+     * @see com.kse.lpep.service.dto.ProgramSubmitInfoPage
+     */
+    @GetMapping("/list_prog_submit")
+    public BaseResponse listProgSubmit(@RequestParam(value = "userId") String userId,
+                                       @RequestParam(value = "questionId") String questionId,
+                                       @RequestParam(value = "pageIndex") int pageIndex,
+                                       @RequestParam(value = "pageSize") int pageSize) {
+        BaseResponse response = new BaseResponse();
+        try {
+            List<ProgramSubmitInfo> infoList = submitService.listProgramSubmitInfo(userId, questionId, pageIndex, pageSize);
+            response.setStatus(ConstantCode.QUERY_SUCCESS);
+            response.setData(new ProgramSubmitInfoPage(infoList));
+        } catch (NotAuthorizedException e) {
+            response.setMsg(e.getMessage());
+            response.setStatus(ConstantCode.VALID_FAIL);
+        } catch (NoSuchRecordException e) {
+            response.setMsg(e.getMessage());
+            response.setStatus(ConstantCode.QUERY_FAIL);
+        }
+        return response;
+    }
+
     private JudgeResult writeErrorToResult(JudgeTask task) {
         JudgeResult result = new JudgeResult();
 
@@ -159,6 +194,7 @@ public class SubmitController {
                 result.setErrorMsg(task.getOutput());
                 result.setStatus(JudgeResult.Status.SYNTAX_ERROR);
             } else if (task.getStatus() == JudgeTask.Status.ABORTED) {
+                result.setErrorMsg(task.getErrorMsg());
                 result.setStatus(JudgeResult.Status.UNKNOWN_ERROR);
             } else if (task.getStatus() == JudgeTask.Status.WRONG) {
                 result.setNumberOfWrong(task.getCaseNumber());

@@ -12,11 +12,20 @@ import lombok.Setter;
 @Setter
 public class JudgeResult {
     public enum Status {
-        ACCEPTED,
-        WRONG_ANSWER,
-        SYNTAX_ERROR,
-        TIME_LIMIT_EXCEEDED,
-        UNKNOWN_ERROR
+        ACCEPTED("accept"),
+        WRONG_ANSWER("wrong answer"),
+        SYNTAX_ERROR("syntax error"),
+        TIME_LIMIT_EXCEEDED("time limit exceeded"),
+        UNKNOWN_ERROR("unknown error");
+
+        private String code;
+
+        private Status(String code) {
+            this.code = code;
+        }
+        public String getCode() {
+            return this.code;
+        }
     }
 
     /**
