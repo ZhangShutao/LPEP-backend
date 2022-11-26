@@ -65,7 +65,7 @@ public class ExperController {
     /**
      * 用户获取下一阶段非编程题目接口
      * 功能介绍：前端确定下阶段为非编程题，然后调用该接口获取题目
-     * 获取成功200；失败210；校验错误300
+     * 获取成功200；问题不存在206；失败210；校验错误300
      * @param request
      * @param bindingResult
      * @return List<NonProgQuestionInfo>
@@ -91,6 +91,8 @@ public class ExperController {
         }catch (NullPointerException e){
             // 前端输入异常，状态置数0
             response.setStatus(ConstantCode.QUERY_FAIL).setMsg("前端请求出错");
+        }catch (QuestionNotExistException e1){
+            response.setStatus(ConstantCode.EMPTY_QUESTION).setMsg(e1.getMessage());
         }
         return response;
     }
@@ -98,7 +100,7 @@ public class ExperController {
     /**
      * 用户获取下一阶段编程题目接口
      * 功能介绍：前端确定下阶段为编程题，然后调用该接口获取题目
-     * 获取成功200；失败210；校验错误300
+     * 获取成功200；问题不存在206；失败210；校验错误300
      * @param request
      * @return ProgQuestionResult
      */
@@ -123,6 +125,8 @@ public class ExperController {
         }catch (NullPointerException | RecordNotExistException | ElementDuplicateException e){
             // 前端输入异常，状态置数0
             response.setStatus(ConstantCode.QUERY_FAIL).setMsg(e.getMessage());
+        }catch (QuestionNotExistException e1){
+            response.setStatus(ConstantCode.EMPTY_QUESTION).setMsg(e1.getMessage());
         }
         return response;
     }

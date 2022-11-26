@@ -107,6 +107,9 @@ public class ExperServiceImpl implements IExperService {
         String groupId = groupPhaseId.get(0);
         String phaseId = groupPhaseId.get(1);
         List<Question> questions = questionMapper.selectByGroupPhase(groupId, phaseId);
+        if(questions.size() == 0){
+            throw new QuestionNotExistException("该非编程阶段没有题目");
+        }
         Collections.sort(questions, (a, b) -> a.getNumber() - b.getNumber());
         List<NonProgQuestionInfo> questionInfos = questions.stream()
                 .map(question ->
@@ -247,6 +250,7 @@ public class ExperServiceImpl implements IExperService {
     @Override
     public ProgQuestionResult acquireProgQuestion(String userId, String experId,
                                                   int phaseNumber, int questionNumber) {
+        questionNumber = questionNumber == -1 ? 1 : questionNumber;
         boolean isBreak;
         try{
             isBreak = verifyBreak(userId, experId, phaseNumber, questionNumber);
@@ -271,7 +275,7 @@ public class ExperServiceImpl implements IExperService {
                 .eq("number", questionNumber + 1);
         ProgQuestion progQuestion = progQuestionMapper.selectOne(queryWrapper1);
         if(progQuestion == null){
-            throw new RecordNotExistException("请求的题目不存在，请开始下一阶段");
+            throw new QuestionNotExistException("请求的编程题目不存在，请开始下一阶段");
         }
         ProgQuestionResult progQuestionResult = new ProgQuestionResult();
         if(progQuestionMapper.selectOne(queryWrapper2) == null){

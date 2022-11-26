@@ -20,5 +20,6 @@ public class ConstantCode {
     public static final int SUBMIT_SUCCESS = 205;
     public static final int SUBMIT_FAIL = 215;
     // 传入数据校验失败
+    public static final int EMPTY_QUESTION = 206;
     public static final int VALID_FAIL = 300;
 }
