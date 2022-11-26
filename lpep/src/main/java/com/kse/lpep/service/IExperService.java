@@ -75,6 +75,6 @@ public interface IExperService {
     /*
     非编程题提交
      */
-    String submitNonProg(String userId, List<UserAnswerDto> answers);
+    String submitNonProg(String userId, String experId, int phaseNumber, List<UserAnswerDto> answers);
 
 }

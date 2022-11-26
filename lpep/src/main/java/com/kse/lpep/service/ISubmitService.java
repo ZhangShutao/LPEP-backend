@@ -56,4 +56,12 @@ public interface ISubmitService {
      */
     Boolean submitQuestionnaire(String userId, String phaseId, String answer)
             throws NoSuchRecordException, NotAuthorizedException;
+
+
+    /**
+     * 用户提交编程题（成功或放弃）后修改用户的状态
+     * @param userId
+     * @param questionId
+     */
+    void modifyProgUserFootprint(String userId, String questionId);
 }

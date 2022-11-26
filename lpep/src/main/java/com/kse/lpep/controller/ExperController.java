@@ -2,10 +2,7 @@ package com.kse.lpep.controller;
 
 
 import com.kse.lpep.common.constant.ConstantCode;
-import com.kse.lpep.common.exception.ElementDuplicateException;
-import com.kse.lpep.common.exception.FrontEndDataException;
-import com.kse.lpep.common.exception.ParamException;
-import com.kse.lpep.common.exception.SaveFileIOException;
+import com.kse.lpep.common.exception.*;
 import com.kse.lpep.common.utility.ValidUtil;
 import com.kse.lpep.controller.vo.*;
 import com.kse.lpep.service.IExperService;
@@ -13,6 +10,7 @@ import com.kse.lpep.service.IQuestionService;
 import com.kse.lpep.service.dto.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -122,9 +120,9 @@ public class ExperController {
             // 正常回应，返回该阶段题目
             response.setStatus(ConstantCode.QUERY_SUCCESS).setMsg("已返回指定题目")
                     .setData(progQuestionResult);
-        }catch (NullPointerException e){
+        }catch (NullPointerException | RecordNotExistException | ElementDuplicateException e){
             // 前端输入异常，状态置数0
-            response.setStatus(ConstantCode.QUERY_FAIL).setMsg("前端请求出错");
+            response.setStatus(ConstantCode.QUERY_FAIL).setMsg(e.getMessage());
         }
         return response;
     }
@@ -229,6 +227,7 @@ public class ExperController {
      * @param bindingResult
      * @return null
      */
+    @Transactional
     @PostMapping("/nonprogsubmit")
     public BaseResponse nonProgSubmit(@RequestBody @Valid NonProgSubmitRequest request,
                                       BindingResult bindingResult){
@@ -240,9 +239,10 @@ public class ExperController {
             return response;
         }
         try{
-            experService.submitNonProg(request.getUserId(), request.getAnswers());
+            experService.submitNonProg(request.getUserId(), request.getExperId(), request.getPhaseNumber(),
+                    request.getAnswers());
             response.setStatus(ConstantCode.SUBMIT_SUCCESS).setMsg("用户提交非编程问题成功");
-        }catch (ElementDuplicateException e) {
+        }catch (ElementDuplicateException | RecordNotExistException e) {
             response.setStatus(ConstantCode.SUBMIT_FAIL).setMsg(e.getMessage());
         }
         return response;

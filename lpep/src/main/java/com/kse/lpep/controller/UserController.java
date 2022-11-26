@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 import javax.validation.Valid;
+import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -231,5 +232,14 @@ public class UserController {
             response.setStatus(ConstantCode.DELETE_FAIL).setMsg(e.getMessage());
         }
         return response;
+    }
+
+    @PostMapping("mytestupload")
+    public BaseResponse testUploadFile(@RequestParam(value = "file") MultipartFile file){
+        String fileSeparator = FileSystems.getDefault().getSeparator();
+        String targetPath = fileSeparator + "mytesta";
+        String saveName = "saveName.txt";
+        SavingFile.saveFile(file, saveName, targetPath);
+        return null;
     }
 }

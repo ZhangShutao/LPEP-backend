@@ -81,9 +81,11 @@ public class AdminServiceImpl implements IAdminService {
         Exper exper = new Exper();
         Timestamp myStartTime = Timestamp.valueOf(startTime);
         String fileSeparator = FileSystems.getDefault().getSeparator();
-        if(isWindows == 1) {
-            workspace = "c:" + fileSeparator + workspace;
-        }
+//        if(isWindows == 1) {
+//            workspace = "c:" + fileSeparator + workspace;
+//        }
+        workspace = fileSeparator + workspace;
+
         exper.setTitle(experName).setCreator(creatorId).setState(0).setWorkspace(workspace)
                 .setStartTime(myStartTime);
         try {

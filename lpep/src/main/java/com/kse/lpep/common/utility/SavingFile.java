@@ -25,7 +25,11 @@ public class SavingFile {
             if(!parentFile.exists()){
                 parentFile.mkdirs();
             }
-            file.transferTo(files);
+            System.out.println(files.getAbsolutePath());
+
+            file.transferTo(files.toPath().toAbsolutePath());
+            // 下面这个会报错，加个C会成功，如果files使用的是相对路径
+//            file.transferTo(files);
         }catch (IOException e){
             throw new SaveFileIOException(e.getMessage());
         }
