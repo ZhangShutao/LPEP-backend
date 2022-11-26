@@ -3,6 +3,7 @@ package com.kse.lpep.service;
 import com.kse.lpep.common.exception.NoSuchRecordException;
 import com.kse.lpep.common.exception.NotAuthorizedException;
 import com.kse.lpep.service.dto.JudgeTask;
+import com.kse.lpep.service.dto.ProgramSubmitInfo;
 
 import java.io.IOException;
 import java.util.List;
@@ -64,4 +65,15 @@ public interface ISubmitService {
      * @param questionId
      */
     void modifyProgUserFootprint(String userId, String questionId);
+
+    /**
+     * 分页查询用户提交信息，按时间降序排列
+     * @param userId 用户id
+     * @param questionId 问题id
+     * @param pageIndex 页码
+     * @param pageSize 页大小
+     * @return 查询结果
+     * @see ProgramSubmitInfo
+     */
+    List<ProgramSubmitInfo> listProgramSubmitInfo(String userId, String questionId, int pageIndex,int pageSize) throws NotAuthorizedException, NoSuchRecordException;
 }
