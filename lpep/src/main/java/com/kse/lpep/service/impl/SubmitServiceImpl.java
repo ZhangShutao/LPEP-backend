@@ -146,8 +146,8 @@ public class SubmitServiceImpl implements ISubmitService {
         Runner runner = runnerMapper.selectById(question.getRunnerId());
         Phase phase = phaseMapper.selectById(question.getPhaseId());
         Exper exper = experMapper.selectById(phase.getExperId());
-        String inputDir = exper.getWorkspace() + File.pathSeparator + "test" + File.pathSeparator + "input";
-        String standardOutputDir = exper.getWorkspace() + File.pathSeparator + "test" + File.pathSeparator + "std_out";
+        String inputDir = exper.getWorkspace() + File.separator + "test" + File.separator + "input";
+        String standardOutputDir = exper.getWorkspace() + File.separator + "test" + File.separator + "std_out";
 
         File userSourceFile = saveProgramAsTempFile(submit.getSourceCode());
 
