@@ -79,9 +79,9 @@ public class JudgeServiceImpl implements IJudgeService {
             task = taskFuture.get(30, TimeUnit.SECONDS);
 
             if (task.getStatus() == JudgeTask.Status.JUDGING) {
-                progSubmitMapper.updateRunnerOutputById(task.getOutput(), task.getRunnerTime());
                 log.info("用时：{}", task.getRunnerTime());
                 log.info("输出：{}", task.getOutput());
+                progSubmitMapper.updateRunnerOutputById(task.getProgSubmitId(), task.getOutput(), task.getRunnerTime());
                 if (isJudgeResultCorrect(task)) {
                     task.setStatus(JudgeTask.Status.ACCEPTED);
                     progSubmitMapper.updateStatusById(task.getProgSubmitId(), ProgSubmit.ACCEPTED);
@@ -99,7 +99,7 @@ public class JudgeServiceImpl implements IJudgeService {
             return task;
 
         } catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
-            log.error("测试 {} 时出错：{}", task.getCaseNumber(), e.getMessage());
+            log.error("测试 {} 时出错：{}", task.getCaseNumber(), e);
             task.setStatus(JudgeTask.Status.ABORTED);
             progSubmitMapper.updateStatusById(task.getProgSubmitId(), ProgSubmit.UNKNOWN_ERROR);
             return task;

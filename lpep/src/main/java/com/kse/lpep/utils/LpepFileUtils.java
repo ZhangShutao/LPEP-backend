@@ -1,6 +1,7 @@
 package com.kse.lpep.utils;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +18,7 @@ public class LpepFileUtils {
         StringJoiner joiner = new StringJoiner(System.lineSeparator());
         String line;
         while ((line = reader.readLine()) != null) {
-            joiner.add(line);
+            joiner.add(new String(line.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
         }
         return joiner.toString();
     }

@@ -22,6 +22,8 @@ public interface IProgSubmitMapper extends BaseMapper<ProgSubmit> {
                                                                             @Param(value = "row") Integer row,
                                                                             @Param(value = "size") Integer size);
 
-    @Update("update `t_prog_submit` set `runner_output`=#{output} and `runner_time`=#{second}")
-    boolean updateRunnerOutputById(@Param(value = "output") String output, @Param(value = "second") Double second);
+    @Update("update `t_prog_submit` set `runner_output`=#{output}, `runner_time`=#{second} where `id`=#{id}")
+    boolean updateRunnerOutputById(@Param(value = "id") String id,
+                                   @Param(value = "output") String output,
+                                   @Param(value = "second") Double second);
 }

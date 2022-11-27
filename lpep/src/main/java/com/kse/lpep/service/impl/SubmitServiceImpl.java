@@ -151,7 +151,7 @@ public class SubmitServiceImpl implements ISubmitService {
         Phase phase = phaseMapper.selectById(question.getPhaseId());
         Exper exper = experMapper.selectById(phase.getExperId());
         String inputDir = exper.getWorkspace() + File.separator + "test" + File.separator + "input";
-        String standardOutputDir = exper.getWorkspace() + File.separator + "test" + File.separator + "std_out";
+        String standardOutputDir = exper.getWorkspace() + File.separator + "test" + File.separator + "std-out";
 
         File userSourceFile = saveProgramAsTempFile(submit.getSourceCode());
 
@@ -163,9 +163,9 @@ public class SubmitServiceImpl implements ISubmitService {
                     testCase.generateOutputPath(standardOutputDir),
                     "",
                     runner.getCommand(),
-                    question.getTimeLimit());
+                    question.getRuntimeLimit());
             taskList.add(task);
-            log.debug("Judge task for case {} of submit {} is added to queue", testCase.getNumber(), submit.getId());
+            log.info("Judge task for case {} of submit {} is added to queue", testCase.getNumber(), submit.getId());
         }
         return taskList;
     }
@@ -236,10 +236,10 @@ public class SubmitServiceImpl implements ISubmitService {
 
     @Override
     public void modifyProgUserFootprint(String userId, String questionId) {
-        Question question = questionMapper.selectById(questionId);
-        String experId = question.getExperId();
-        int currentQuestionNumber = question.getNumber();
-        String phaseId = question.getPhaseId();
+        ProgQuestion progQuestion = progQuestionMapper.selectById(questionId);
+        String experId = progQuestion.getExperId();
+        int currentQuestionNumber = progQuestion.getNumber();
+        String phaseId = progQuestion.getPhaseId();
         int currentPhaseNumber = phaseMapper.selectById(phaseId).getPhaseNumber();
         UpdateWrapper<UserFootprint> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("user_id", userId).eq("exper_id", experId);

@@ -28,15 +28,15 @@ public class SolverCallable implements Callable<JudgeTask> {
      * @return 时间
      */
     private double extractUsedTime(String string) {
-        Pattern patternClingo = Pattern.compile("^Time\\S:\\s([.0-9]*)s");
-        Pattern patternCdl = Pattern.compile("^Elapsed time: ([.0-9]*)s");
+        Pattern patternClingo = Pattern.compile("^Time\\s*:\\s*([.0-9]*)s",  Pattern.MULTILINE);
+        Pattern patternCdl = Pattern.compile("^Elapsed time: ([.0-9]*)s", Pattern.MULTILINE);
         Matcher matcherClingo = patternClingo.matcher(string);
         Matcher matcherCdl = patternCdl.matcher(string);
 
         if (matcherClingo.find()) {
-            return Double.parseDouble(String.valueOf(matcherClingo.group()));
+            return Double.parseDouble(String.valueOf(matcherClingo.group(1)));
         } else if (matcherCdl.find()) {
-            return Double.parseDouble(String.valueOf(matcherCdl.group()));
+            return Double.parseDouble(String.valueOf(matcherCdl.group(1)));
         } else {
             return -1;
         }
@@ -48,6 +48,7 @@ public class SolverCallable implements Callable<JudgeTask> {
         TimedRunnable timedRunnable = new TimedRunnable(task);
         ExecutorService exec = Executors.newSingleThreadExecutor();
         try {
+            log.info("运行时间上限：{}", task.getTimeLimit());
             exec.submit(timedRunnable).get(task.getTimeLimit(), TimeUnit.SECONDS);
 
             if (task.getErrorMsg().contains("syntax error")) { // 错误信息中存在语法错误

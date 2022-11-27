@@ -97,6 +97,7 @@ public class JudgeTask {
                      String sourcePath, String inputPath, String standardOutputPath, String output,
                      String cmd, Integer timeLimit) {
         this.progSubmitId = progSubmitId;
+        this.caseNumber = caseNumber;
         this.sourcePath = sourcePath;
         this.inputPath = inputPath;
         this.standardOutputPath = standardOutputPath;
