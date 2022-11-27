@@ -15,4 +15,5 @@ public interface IUserFootprintMapper extends BaseMapper<UserFootprint> {
     @Select("select * from t_user_footprint " +
             "where user_id=#{userId} and  exper_id=#{experId}")
     UserFootprint selectByUserExper(@Param("userId") String userId, @Param("experId") String experId);
+
 }

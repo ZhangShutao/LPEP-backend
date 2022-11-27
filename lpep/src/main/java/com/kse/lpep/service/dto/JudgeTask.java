@@ -86,6 +86,11 @@ public class JudgeTask {
      */
     private Integer timeLimit;
 
+    /**
+     * 实际运行时间，单位为秒
+     */
+    private Double runnerTime;
+
     private Status status;
 
     public JudgeTask(String progSubmitId, Integer caseNumber,

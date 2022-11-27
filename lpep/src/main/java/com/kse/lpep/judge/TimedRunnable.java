@@ -30,7 +30,8 @@ public class TimedRunnable implements Callable<JudgeTask> {
         try {
             CommandLineOutput output = cmdExecutor.callShell(solverName, args);
 
-            System.out.println(output.getOutput());
+            log.info("推理机输出为：{}", output.getOutput());
+            log.info("推理机错误输出为：{}", output.getError());
             return output;
         } catch (IOException | UnsupportedOsTypeException e) {
             return new CommandLineOutput("", e.getMessage());
@@ -51,16 +52,9 @@ public class TimedRunnable implements Callable<JudgeTask> {
 
                 task.setOutput(output.getOutput());
                 task.setErrorMsg(output.getError());
-
-                if (output.getError().contains("syntax error")) { // 错误信息中存在语法错误
-                    task.setStatus(JudgeTask.Status.SYNTAX_ERROR);
-                } else {
-                    task.setStatus(JudgeTask.Status.JUDGING);
-                }
-
             }
         } else {
-            System.out.println("task not runnable");
+            log.error("测试任务 {} 状态错误", task.getCaseNumber());
             task.setStatus(JudgeTask.Status.ABORTED);
         }
         return task;

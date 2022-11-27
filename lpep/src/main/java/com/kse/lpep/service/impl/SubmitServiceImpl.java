@@ -1,5 +1,6 @@
 package com.kse.lpep.service.impl;
 
+import cn.hutool.core.date.DateTime;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -24,8 +25,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -90,6 +93,7 @@ public class SubmitServiceImpl implements ISubmitService {
         } else {
             UserGroup userGroup = userGroupMapper.getByUserIdAndGroupId(userId, progQuestion.getGroupId());
             Exper exper = experMapper.selectById(progQuestion.getExperId());
+            log.info("实验状态：{}", exper.getState());
             return (userGroup != null) && (exper.getState().equals(Exper.RUNNING));
         }
     }
@@ -173,7 +177,12 @@ public class SubmitServiceImpl implements ISubmitService {
         if (!isUserAuthorizedProgQuestion(userId, problemId)) {
             throw new NotAuthorizedException(String.format("用户 %s 没有提交问题 %s 的权限", userId, problemId));
         } else {
+            ProgQuestion question = progQuestionMapper.selectById(problemId);
+            UserFootprint footprint  = userFootprintMapper.selectByUserExper(userId, question.getExperId());
+            int usedMin = (int) ((new Date().getTime() -  footprint.getStartTime().getTime()) / (60 * 1000));
+
             ProgSubmit submit = new ProgSubmit(userId, problemId, ProgSubmit.NOT_TESTED, code);
+            submit.setUsedTime(usedMin);
             progSubmitMapper.insert(submit);
 
             return generateJudgeTasks(submit);

@@ -79,18 +79,27 @@ public class JudgeServiceImpl implements IJudgeService {
             task = taskFuture.get(30, TimeUnit.SECONDS);
 
             if (task.getStatus() == JudgeTask.Status.JUDGING) {
+                progSubmitMapper.updateRunnerOutputById(task.getOutput(), task.getRunnerTime());
+                log.info("用时：{}", task.getRunnerTime());
+                log.info("输出：{}", task.getOutput());
                 if (isJudgeResultCorrect(task)) {
                     task.setStatus(JudgeTask.Status.ACCEPTED);
                     progSubmitMapper.updateStatusById(task.getProgSubmitId(), ProgSubmit.ACCEPTED);
+                    log.info("测试数据 {} 通过。", task.getCaseNumber());
                 } else {
                     task.setStatus(JudgeTask.Status.WRONG);
                     progSubmitMapper.updateStatusById(task.getProgSubmitId(), ProgSubmit.WRONG_ANSWER);
+
+                    log.info("测试数据 {} 错误：应当为：\n{}\n；实际为：\n{}\n", task.getCaseNumber(),
+                            LpepFileUtils.readFile(task.getStandardOutputPath()),
+                            task.getOutput());
                 }
             }
 
             return task;
 
         } catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {
+            log.error("测试 {} 时出错：{}", task.getCaseNumber(), e.getMessage());
             task.setStatus(JudgeTask.Status.ABORTED);
             progSubmitMapper.updateStatusById(task.getProgSubmitId(), ProgSubmit.UNKNOWN_ERROR);
             return task;

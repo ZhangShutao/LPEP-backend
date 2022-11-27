@@ -26,11 +26,11 @@ public class Case implements Serializable {
 
 
     public String generateInputPath(String inputDir) {
-        return inputDir + File.pathSeparator  + id + ".in";
+        return inputDir + File.separator  + id + ".in";
     }
 
     public String generateOutputPath(String outputDir) {
-        return outputDir + File.pathSeparator + id + ".out";
+        return outputDir + File.separator + id + ".out";
     }
 
 }
