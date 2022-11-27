@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -12,6 +13,7 @@ import java.sql.Timestamp;
 @Data
 @Accessors(chain = true)
 @TableName("t_prog_question")
+@NoArgsConstructor
 public class ProgQuestion implements Serializable {
     private static final long serialVersionUID = 1875116180874736811L;
     @TableId(type = IdType.ASSIGN_UUID)

@@ -3,7 +3,9 @@ package com.kse.lpep.mapper.pojo;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,6 +16,8 @@ import java.sql.Timestamp;
 @Data
 @Accessors(chain = true)
 @TableName("t_prog_submit")
+@NoArgsConstructor
+//@AllArgsConstructor
 public class ProgSubmit implements Serializable {
     private static final long serialVersionUID = 5665552944925643191L;
     // 状态信息

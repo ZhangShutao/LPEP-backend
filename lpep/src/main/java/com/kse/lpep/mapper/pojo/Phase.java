@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -11,6 +12,7 @@ import java.io.Serializable;
 @Data
 @Accessors(chain = true)
 @TableName("t_phase")
+@NoArgsConstructor
 public class Phase implements Serializable {
     private static final long serialVersionUID = -3253916079402647284L;
     public static final Integer QUESTIONNAIRE = 0;

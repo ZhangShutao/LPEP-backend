@@ -111,8 +111,9 @@ public class UserServiceImpl implements IUserService {
                 }
                 // 情况1：存在实验中断
                 String currentStartTime = new SimpleDateFormat("yyyy-MM-dd").format(userFootprint.getStartTime());
+                long startTime = userFootprint.getStartTime().getTime();
                 experInfo.setCurrentPhaseNumber(userFootprint.getCurrentPhaseNumber())
-                        .setCurrentStartTime(currentStartTime).setState(1);
+                        .setCurrentStartTime(startTime).setState(1);
                 if(userFootprint.getCurrentQuestionNumber() != null){
                     experInfo.setCurrentQuestionNumber(userFootprint.getCurrentQuestionNumber());
                 }

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
@@ -12,6 +13,7 @@ import java.io.Serializable;
 @Data
 @Accessors(chain = true)
 @TableName("t_user_group")
+@NoArgsConstructor
 public class UserGroup implements Serializable {
     private static final long serialVersionUID = 8496939899638839210L;
     @TableId(type = IdType.ASSIGN_UUID)

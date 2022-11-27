@@ -66,6 +66,14 @@ public interface ISubmitService {
      */
     void modifyProgUserFootprint(String userId, String questionId);
 
+
+    /**
+     * 校验用户的编程题重复提交问题，重复提交则抛出异常
+     * @param userId
+     * @param progQuestionId
+     */
+    void validRepeat(String userId, String progQuestionId);
+
     /**
      * 分页查询用户提交信息，按时间降序排列
      * @param userId 用户id
@@ -76,4 +84,12 @@ public interface ISubmitService {
      * @see ProgramSubmitInfo
      */
     List<ProgramSubmitInfo> listProgramSubmitInfo(String userId, String questionId, int pageIndex,int pageSize) throws NotAuthorizedException, NoSuchRecordException;
+
+    /**
+     * 获取分页查询的总记录数
+     * @param userId
+     * @param questionId
+     * @return
+     */
+    int getRecordNumber(String userId, String questionId);
 }

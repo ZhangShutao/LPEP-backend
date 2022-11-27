@@ -14,5 +14,5 @@ public class AbortProblemRequest {
     private String userId;
 
     @NotBlank(message = "问题id不可为空")
-    private String problemId;
+    private String questionId;
 }

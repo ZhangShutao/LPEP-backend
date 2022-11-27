@@ -94,6 +94,9 @@ public class JudgeServiceImpl implements IJudgeService {
                             LpepFileUtils.readFile(task.getStandardOutputPath()),
                             task.getOutput());
                 }
+            } else if (task.getStatus() == JudgeTask.Status.SYNTAX_ERROR) {
+                progSubmitMapper.updateStatusById(task.getProgSubmitId(), ProgSubmit.SYNTAX_ERROR);
+                log.info("测试数据 {} 存在语法错误", task.getCaseNumber());
             }
 
             return task;
