@@ -469,23 +469,32 @@ public class ExperServiceImpl implements IExperService {
         }catch (RecordNotExistException | RecordConflictException e){
             throw new RecordNotExistException(e.getMessage());
         }
-        QueryWrapper<Submit> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", userId);
-        if(submitMapper.selectList(queryWrapper).size() != 0){
-            throw new ElementDuplicateException("用户已经提交过该部分题，提交错误");
-        }
-        // 去重
-        Set<String> idSet = new HashSet<>();
-        for(UserAnswerDto u : answers){
-            if(idSet.contains(u.getQuestionId())){
-                throw new ElementDuplicateException("提交题号重复错误");
-            }
-            idSet.add(u.getQuestionId());
-        }
+
+//        QueryWrapper<Submit> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.eq("user_id", userId);
+//        if(submitMapper.selectList(queryWrapper).size() != 0){
+//            throw new ElementDuplicateException("用户已经提交过该部分题，提交错误");
+//        }
+//
+//        // 去重
+//        Set<String> idSet = new HashSet<>();
+//        for(UserAnswerDto u : answers){
+//            if(idSet.contains(u.getQuestionId())){
+//                throw new ElementDuplicateException("提交题号重复错误");
+//            }
+//            idSet.add(u.getQuestionId());
+//        }
+
         // 入库
         answers.stream().forEach(u->
         {
             Submit submit = new Submit();
+            if(questionMapper.selectById(u.getQuestionId()) == null){
+                throw new RecordNotExistException("提交的问题不存在");
+            }
+            if( submitMapper.selectByUserQuestion(userId, u.getQuestionId()).size() != 0){
+                throw new ElementDuplicateException("问题重复错误");
+            }
             submit.setUserId(userId).setQuestionId(u.getQuestionId()).setUserAnswer(u.getReply());
             submitMapper.insert(submit);
         });

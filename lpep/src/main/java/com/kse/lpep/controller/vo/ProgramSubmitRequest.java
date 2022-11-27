@@ -22,7 +22,7 @@ public class ProgramSubmitRequest {
      * 本次提交对应的问题的id
      */
     @NotBlank(message = "问题id不能为空")
-    private String problemId;
+    private String questionId;
 
     /**
      * 用户提交的代码

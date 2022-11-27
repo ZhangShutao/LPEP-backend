@@ -247,6 +247,7 @@ public class ExperController {
                     request.getAnswers());
             response.setStatus(ConstantCode.SUBMIT_SUCCESS).setMsg("用户提交非编程问题成功");
         }catch (ElementDuplicateException | RecordNotExistException e) {
+            System.out.println("12345");
             response.setStatus(ConstantCode.SUBMIT_FAIL).setMsg(e.getMessage());
         }
         return response;

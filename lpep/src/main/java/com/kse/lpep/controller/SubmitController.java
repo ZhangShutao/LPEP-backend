@@ -32,7 +32,7 @@ import java.util.List;
  * @author 张舒韬
  * @since 2022/11/23
  */
-@Controller
+@RestController
 @RequestMapping("/submit")
 public class SubmitController {
 
@@ -46,7 +46,7 @@ public class SubmitController {
 
     /**
      * 对用户的程序提交请求的响应，运行并验证程序的正确性
-     * todo 用户足迹，不需要加，因为用户做题记录是在前端要新的题时设置的
+     * todo user_time需要和足迹中的时间做运算
      * @param request 用户请求
      * @return 程序提交和检测的结果
      * @see ProgramSubmitRequest
@@ -62,7 +62,7 @@ public class SubmitController {
         }
         try {
             List<JudgeTask> taskList = submitService.submitProgram(request.getUserId(),
-                    request.getProblemId(),
+                    request.getQuestionId(),
                     request.getSource());
 
             for (JudgeTask task : taskList) {
@@ -72,7 +72,7 @@ public class SubmitController {
                 if (task.getStatus() == JudgeTask.Status.ACCEPTED) {
                     JudgeResult result = new JudgeResult();
                     result.setStatus(JudgeResult.Status.ACCEPTED);
-                    submitService.modifyProgUserFootprint(request.getUserId(), request.getProblemId());
+                    submitService.modifyProgUserFootprint(request.getUserId(), request.getQuestionId());
                     return new BaseResponse(ConstantCode.SUBMIT_SUCCESS, "测试通过。", result);
                 } else {
                     JudgeResult result = writeErrorToResult(task);
