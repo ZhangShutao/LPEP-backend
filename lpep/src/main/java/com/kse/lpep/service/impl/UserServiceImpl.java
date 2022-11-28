@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kse.lpep.common.exception.DeleteException;
+import com.kse.lpep.common.exception.ElementDuplicateException;
 import com.kse.lpep.common.exception.RecordNotExistException;
 import com.kse.lpep.common.exception.UserLoginException;
 import com.kse.lpep.mapper.*;
@@ -102,10 +103,16 @@ public class UserServiceImpl implements IUserService {
         // 3.判断用户是否存在未完成的实验，并筛选已经完成的实验
         boolean isExistBreak = false;
         for(String experId : experIds){
-            UserFootprint userFootprint = userFootprintMapper.selectByUserExper(id, experId);
+//            UserFootprint userFootprint = userFootprintMapper.selectByUserExper(id, experId);
+            List<UserFootprint> userFootprints = userFootprintMapper.selectListByUserExper(id, experId);
+            if(userFootprints.size() > 1){
+                throw new ElementDuplicateException(String.format("用户记录表中用户 %s 在实验 %s 中出现重复错误",
+                        id, experId));
+            }
             ExperInfo experInfo = new ExperInfo();
             experInfo.setState(0);
-            if(userFootprint != null){
+            if(userFootprints.size() == 1){
+                UserFootprint userFootprint = userFootprints.get(0);
                 if(userFootprint.getIsEnd() == 1){
                     continue;
                 }
@@ -114,9 +121,18 @@ public class UserServiceImpl implements IUserService {
                 long startTime = userFootprint.getStartTime().getTime();
                 experInfo.setCurrentPhaseNumber(userFootprint.getCurrentPhaseNumber())
                         .setCurrentStartTime(startTime).setState(1);
-                if(userFootprint.getCurrentQuestionNumber() != null){
+                int myCurrentQuestionNumber = userFootprint.getCurrentQuestionNumber();
+
+                if(myCurrentQuestionNumber == -1){
+                    experInfo.setCurrentQuestionNumber(1);
+                }else{
                     experInfo.setCurrentQuestionNumber(userFootprint.getCurrentQuestionNumber());
                 }
+
+                // 错误的逻辑
+//                if(userFootprint.getCurrentQuestionNumber() != null){
+//                    experInfo.setCurrentQuestionNumber(userFootprint.getCurrentQuestionNumber());
+//                }
                 isExistBreak = true;
             }
             // 情况2：正常情况，正常状态为1，存在中断状态为2

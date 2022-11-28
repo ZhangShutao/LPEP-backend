@@ -265,6 +265,9 @@ public class SubmitServiceImpl implements ISubmitService {
         UpdateWrapper<UserFootprint> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("user_id", userId).eq("exper_id", experId);
         UserFootprint userFootprint = new UserFootprint();
+        if(currentQuestionNumber == -1) {
+            currentQuestionNumber = 1;
+        }
         userFootprint.setCurrentPhaseNumber(currentPhaseNumber)
                 .setCurrentQuestionNumber(currentQuestionNumber + 1);
         userFootprintMapper.update(userFootprint, updateWrapper);

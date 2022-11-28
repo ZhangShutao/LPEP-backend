@@ -11,6 +11,7 @@ import com.kse.lpep.service.IExperService;
 import com.kse.lpep.service.ITrainingMaterialService;
 import com.kse.lpep.service.IUserService;
 import com.kse.lpep.service.dto.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 
 @RestController
+@Slf4j
 @RequestMapping("admin")
 public class AdminorController {
     @Autowired
@@ -169,8 +171,10 @@ public class AdminorController {
         // 1.校验：文件title存在；experId和groupId不存在或者不对应;
         int status = trainingMaterialService.validStatus(name, experId, groupId);
         if(status == 1){
+
             response.setStatus(ConstantCode.UPLOAD_FAIL).setMsg("该培训材料已存在");
         }else if(status == 2){
+            log.info("传入的experId为 {} ，groupId为 {}", experId, groupId);
             response.setStatus(ConstantCode.UPLOAD_FAIL).setMsg("实验名和组别传入错误");
         }else if(status == 0){
             try{

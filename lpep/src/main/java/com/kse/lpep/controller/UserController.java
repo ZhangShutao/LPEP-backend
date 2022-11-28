@@ -1,10 +1,7 @@
 package com.kse.lpep.controller;
 
 import com.kse.lpep.common.constant.ConstantCode;
-import com.kse.lpep.common.exception.DeleteException;
-import com.kse.lpep.common.exception.RecordNotExistException;
-import com.kse.lpep.common.exception.SaveFileIOException;
-import com.kse.lpep.common.exception.UserLoginException;
+import com.kse.lpep.common.exception.*;
 import com.kse.lpep.common.utility.SavingFile;
 import com.kse.lpep.common.utility.ValidUtil;
 import com.kse.lpep.controller.vo.BaseResponse;
@@ -120,7 +117,7 @@ public class UserController {
                 response.setStatus(ConstantCode.QUERY_SUCCESS).setMsg("用户正常开始实验");
             }
             response.setData(data);
-        }catch (NullPointerException e){
+        }catch (NullPointerException | ElementDuplicateException e){
             // 用户不存在
             response.setStatus(ConstantCode.QUERY_FAIL).setMsg("该用户不存在");
         }catch (IndexOutOfBoundsException e1){
