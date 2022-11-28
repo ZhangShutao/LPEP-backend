@@ -110,7 +110,11 @@ public class CommandLineExecutorImpl implements CommandLineExecutor {
         outputReader.start();
         ReadThread errorReader = new ReadThread(process.getErrorStream());
         errorReader.start();
+        log.info("reader threads started");
+        String output = outputReader.getResult();
+        String error = errorReader.getResult();
+        log.info("result read");
 
-        return new CommandLineOutput(outputReader.getResult(), errorReader.getResult());
+        return new CommandLineOutput(output, error);
     }
 }

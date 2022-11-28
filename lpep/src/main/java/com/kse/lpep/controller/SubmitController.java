@@ -1,25 +1,21 @@
 package com.kse.lpep.controller;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import com.kse.lpep.common.ConstantCode;
 import com.kse.lpep.common.exception.NoSuchRecordException;
 import com.kse.lpep.common.exception.NotAuthorizedException;
+import com.kse.lpep.common.exception.RecordNotExistException;
 import com.kse.lpep.common.utility.ValidUtil;
 import com.kse.lpep.controller.vo.AbortProblemRequest;
 import com.kse.lpep.controller.vo.BaseResponse;
 import com.kse.lpep.controller.vo.ProgramSubmitRequest;
-import com.kse.lpep.controller.vo.QuestionnaireSubmitRequest;
-import com.kse.lpep.service.IExperService;
 import com.kse.lpep.service.IJudgeService;
 import com.kse.lpep.service.ISubmitService;
 import com.kse.lpep.service.dto.JudgeResult;
 import com.kse.lpep.service.dto.JudgeTask;
 import com.kse.lpep.service.dto.ProgramSubmitInfo;
 import com.kse.lpep.service.dto.ProgramSubmitInfoPage;
-import com.kse.lpep.utils.LpepFileUtils;
-import org.jetbrains.annotations.NotNull;
+import com.kse.lpep.service.utils.LpepFileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -61,6 +57,7 @@ public class SubmitController {
             return new BaseResponse(ConstantCode.VALID_FAIL, errorMessage);
         }
         try {
+            submitService.validRepeat(request.getUserId(), request.getQuestionId());
             List<JudgeTask> taskList = submitService.submitProgram(request.getUserId(),
                     request.getQuestionId(),
                     request.getSource());
@@ -69,12 +66,7 @@ public class SubmitController {
                 task.setStatus(JudgeTask.Status.RUNNING);
                 judgeService.judge(task);
 
-                if (task.getStatus() == JudgeTask.Status.ACCEPTED) {
-                    JudgeResult result = new JudgeResult();
-                    result.setStatus(JudgeResult.Status.ACCEPTED);
-                    submitService.modifyProgUserFootprint(request.getUserId(), request.getQuestionId());
-                    return new BaseResponse(ConstantCode.SUBMIT_SUCCESS, "测试通过。", result);
-                } else {
+                if (task.getStatus() != JudgeTask.Status.ACCEPTED) {
                     JudgeResult result = writeErrorToResult(task);
                     String message;
                     if (task.getStatus() == JudgeTask.Status.TIME_LIMIT_EXCEEDED) {
@@ -94,12 +86,15 @@ public class SubmitController {
                     return new BaseResponse(ConstantCode.SUBMIT_FAIL, message, result);
                 }
             }
-        } catch (NoSuchRecordException | NotAuthorizedException | IOException e) {
+            JudgeResult result = new JudgeResult();
+            result.setStatus(JudgeResult.Status.ACCEPTED);
+            submitService.modifyProgUserFootprint(request.getUserId(), request.getQuestionId());
+            return new BaseResponse(ConstantCode.SUBMIT_SUCCESS, "测试通过。", result);
+        } catch (NoSuchRecordException | NotAuthorizedException | IOException | RecordNotExistException e) {
             JudgeResult result = new JudgeResult();
             result.setStatus(JudgeResult.Status.UNKNOWN_ERROR);
             return new BaseResponse(ConstantCode.SUBMIT_FAIL, e.getMessage(), result);
         }
-        return new BaseResponse();
     }
 
     /**
@@ -117,44 +112,21 @@ public class SubmitController {
             response.setStatus(ConstantCode.VALID_FAIL).setMsg(message);
         } else {
             try {
-                if (submitService.abortProgram(request.getUserId(), request.getProblemId())) {
-                    submitService.modifyProgUserFootprint(request.getUserId(), request.getProblemId());
+                submitService.validRepeat(request.getUserId(), request.getQuestionId());
+                if (submitService.abortProgram(request.getUserId(), request.getQuestionId())) {
+                    submitService.modifyProgUserFootprint(request.getUserId(), request.getQuestionId());
                     response.setStatus(ConstantCode.SUBMIT_SUCCESS);
                 } else {
                     response.setStatus(ConstantCode.SUBMIT_FAIL);
                 }
-            } catch (NotAuthorizedException | NoSuchRecordException e) {
+            } catch (NotAuthorizedException | NoSuchRecordException | RecordNotExistException e) {
                 response.setStatus(ConstantCode.VALID_FAIL).setMsg(e.getMessage());
             }
         }
         return response;
     }
 
-    /**
-     * 对用户问卷阶段提交请求的响应
-     * @param request 用户请求
-     * @return 请求执行结果
-     */
-    @PostMapping("submit_questionnaire")
-    public BaseResponse submitQuestionnaire(@RequestBody @Valid QuestionnaireSubmitRequest request,
-                                            BindingResult bindingResult) {
-        BaseResponse response = new BaseResponse();
-        if (bindingResult.hasErrors()) {
-            String message = bindingResult.toString();
-            response.setStatus(ConstantCode.VALID_FAIL).setMsg(message);
-        } else {
-            try {
-                if (submitService.submitQuestionnaire(request.getUserId(), request.getPhaseId(), request.getAnswer())) {
-                    response.setStatus(ConstantCode.SUBMIT_SUCCESS);
-                } else {
-                    response.setStatus(ConstantCode.SUBMIT_FAIL).setMsg("未知错误");
-                }
-            } catch (NoSuchRecordException | NotAuthorizedException e) {
-                response.setStatus(ConstantCode.VALID_FAIL).setMsg(e.getMessage());
-            }
-        }
-        return response;
-    }
+
 
     /**
      * 分页查询一个用户对指定问题的所有提交记录
@@ -174,8 +146,9 @@ public class SubmitController {
         BaseResponse response = new BaseResponse();
         try {
             List<ProgramSubmitInfo> infoList = submitService.listProgramSubmitInfo(userId, questionId, pageIndex, pageSize);
+            int recordNumber = submitService.getRecordNumber(userId, questionId);
             response.setStatus(ConstantCode.QUERY_SUCCESS);
-            response.setData(new ProgramSubmitInfoPage(infoList));
+            response.setData(new ProgramSubmitInfoPage(infoList, recordNumber));
         } catch (NotAuthorizedException e) {
             response.setMsg(e.getMessage());
             response.setStatus(ConstantCode.VALID_FAIL);
@@ -191,7 +164,7 @@ public class SubmitController {
 
         try {
             if (task.getStatus() == JudgeTask.Status.SYNTAX_ERROR) {
-                result.setErrorMsg(task.getOutput());
+                result.setErrorMsg(task.getErrorMsg());
                 result.setStatus(JudgeResult.Status.SYNTAX_ERROR);
             } else if (task.getStatus() == JudgeTask.Status.ABORTED) {
                 result.setErrorMsg(task.getErrorMsg());

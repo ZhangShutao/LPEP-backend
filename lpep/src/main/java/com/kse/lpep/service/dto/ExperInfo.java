@@ -28,5 +28,5 @@ public class ExperInfo {
     private Integer state;
     private Integer CurrentPhaseNumber;
     private Integer CurrentQuestionNumber;
-    private String CurrentStartTime;
+    private long CurrentStartTime;
 }

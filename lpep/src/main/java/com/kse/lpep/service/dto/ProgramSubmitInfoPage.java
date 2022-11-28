@@ -15,8 +15,8 @@ public class ProgramSubmitInfoPage {
 
     private List<ProgramSubmitInfo> programSubmitInfoList;
 
-    public ProgramSubmitInfoPage(List<ProgramSubmitInfo> list) {
-        this.recordCount = list.size();
+    public ProgramSubmitInfoPage(List<ProgramSubmitInfo> list, int recordCount) {
+        this.recordCount = recordCount;
         this.programSubmitInfoList = list;
     }
 }

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 
@@ -15,6 +16,7 @@ import java.io.File;
 @Data
 @Accessors(chain = true)
 @TableName("t_case")
+@NoArgsConstructor
 public class Case implements Serializable {
 
     private static final long serialVersionUID = 2619918412167755103L;

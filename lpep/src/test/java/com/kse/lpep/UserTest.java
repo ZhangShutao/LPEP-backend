@@ -30,7 +30,10 @@ class UserTest {
     @Autowired
     private IUserMapper userMapper;
 
-    // 测试查询全部数据
+    /*
+    目的：测试使用mp查询全部数据
+    结果：查询条件为空即可
+     */
     @Test
     void testSelectList() {
         List<User> users = userMapper.selectList(null);
@@ -296,6 +299,54 @@ class UserTest {
 //        System.out.println(user.getRealname());
         userGroupMapper.selectByUserId("2045747668c211ed8ed92cf05decb14f").forEach(System.out::println);
 
+    }
+
+    @Autowired
+    private IProgSubmitMapper progSubmitMapper;
+
+    @Test
+    void testSQLAndIn(){
+        String userId = "456150182f2926d6b844f60e58e53625";
+        String questionId = "be780aa60b1bcd318c78ec7a23f87f4b";
+        List<Integer> list = Arrays.asList(0, 1, 2, 7);
+        List<ProgSubmit> progSubmits = progSubmitMapper
+                .selectByUserIdQuestionIdAndStatus(userId, questionId, list);
+        progSubmits.stream().forEach(p ->{
+            System.out.println(p.getId() + " ," + p.getStatus());
+        });
+    }
+
+    /**
+     * 该测试和上面一个测试为了测试mybatis的sql语句的正确性
+     * 结论：如果pojo类没有空构造函数，那么mybatis的sql查询语句会出问题
+     */
+    @Test
+    void testSQLPage(){
+        String userId = "456150182f2926d6b844f60e58e53625";
+        String questionId = "be780aa60b1bcd318c78ec7a23f87f4b";
+        List<Integer> list = Arrays.asList(0, 1, 2, 7);
+        List<ProgSubmit> progSubmits = progSubmitMapper
+                .pageFindByUserIdAndProgQuestionIdOrderBySubmitTimeDesc(userId, questionId, 1, 5);
+        progSubmits.stream().forEach(p ->{
+            System.out.println(p.getId() + " ," + p.getStatus());
+        });
+    }
+
+    // 测试TimeStamp转换为13位时间戳
+    @Test
+    void testMyTime(){
+        Timestamp myTime = userMapper.selectById("0f6fe6004245a24fdeb36fc2161f8c6e").getCreateTime();
+        System.out.println(myTime);
+        long l1 = myTime.getTime();   // 结果：1669547885000
+        System.out.println(l1);
+    }
+
+    // 测试admin的sha256加密密码
+    @Test
+    void testAdminPassword(){
+        String password = "admin";
+        String res = DigestUtil.sha256Hex(password);
+        System.out.println(res);
     }
 
 

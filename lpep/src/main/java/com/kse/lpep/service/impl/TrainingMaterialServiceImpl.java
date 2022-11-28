@@ -13,6 +13,8 @@ import com.kse.lpep.mapper.pojo.TrainingMaterial;
 import com.kse.lpep.mapper.pojo.UserGroup;
 import com.kse.lpep.service.ITrainingMaterialService;
 import com.kse.lpep.service.dto.*;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +24,7 @@ import java.nio.file.FileSystems;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 public class TrainingMaterialServiceImpl implements ITrainingMaterialService {
     @Autowired
@@ -147,11 +149,13 @@ public class TrainingMaterialServiceImpl implements ITrainingMaterialService {
         if(trainingMaterialMapper.selectOne(queryWrapper) != null){
             return 1;
         }
-        QueryWrapper<UserGroup> queryWrapper1 = new QueryWrapper<>();
-        queryWrapper1.eq("exper_id", experId).eq("group_id", groupId);
-        List<UserGroup> userGroups = userGroupMapper.selectList(queryWrapper1);
-        // 错误情况2：实验名和组别名传入错误
-        if(userGroups.size() == 0){
+        Group group = groupMapper.selectById(groupId);
+        if(group == null ||  !experId.equals(group.getExperId())){
+            if (group == null) {
+                log.warn("group is null");
+            }else{
+                log.warn("group.experId is:{}", group.getExperId());
+            }
             return 2;
         }
         return 0;

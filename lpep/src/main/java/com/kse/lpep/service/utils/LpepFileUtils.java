@@ -1,4 +1,4 @@
-package com.kse.lpep.utils;
+package com.kse.lpep.service.utils;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

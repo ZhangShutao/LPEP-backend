@@ -292,9 +292,6 @@ public class ExperServiceImpl implements IExperService {
                         setCurrentPhaseNumber(1).setCurrentQuestionNumber(1).setIsEnd(0);
                 userFootprintMapper.insert(userFootprint);
             }
-//            else {
-//                modifyUserFootprint(userId, experId, phaseNumber, questionNumber, 0);
-//            }
         return progQuestionResult;
     }
 //    public ProgQuestionResult acquireProgQuestion(String userId, String experId,

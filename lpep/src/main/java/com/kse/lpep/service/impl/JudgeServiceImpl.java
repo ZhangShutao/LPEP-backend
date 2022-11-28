@@ -8,7 +8,7 @@ import com.kse.lpep.mapper.IProgSubmitMapper;
 import com.kse.lpep.mapper.pojo.ProgSubmit;
 import com.kse.lpep.service.IJudgeService;
 import com.kse.lpep.service.dto.JudgeTask;
-import com.kse.lpep.utils.LpepFileUtils;
+import com.kse.lpep.service.utils.LpepFileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -18,9 +18,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -94,6 +91,9 @@ public class JudgeServiceImpl implements IJudgeService {
                             LpepFileUtils.readFile(task.getStandardOutputPath()),
                             task.getOutput());
                 }
+            } else if (task.getStatus() == JudgeTask.Status.SYNTAX_ERROR) {
+                progSubmitMapper.updateStatusById(task.getProgSubmitId(), ProgSubmit.SYNTAX_ERROR);
+                log.info("测试数据 {} 存在语法错误", task.getCaseNumber());
             }
 
             return task;

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kse.lpep.common.exception.ElementDuplicateException;
 import com.kse.lpep.common.exception.NoSuchRecordException;
 import com.kse.lpep.common.exception.NotAuthorizedException;
 import com.kse.lpep.mapper.*;
@@ -28,6 +29,7 @@ import java.nio.file.Files;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -83,7 +85,8 @@ public class SubmitServiceImpl implements ISubmitService {
      * @return 有权限则返回true
      * @throws NoSuchRecordException 问题所属的群组或实验不存在
      */
-    private Boolean isUserAuthorizedProgQuestion(String userId, String progQuestionId) throws NoSuchRecordException {
+    private Boolean isUserAuthorizedProgQuestion(String userId, String progQuestionId) throws NoSuchRecordException
+            ,ElementDuplicateException {
         User user = userMapper.selectById(userId);
         ProgQuestion progQuestion = progQuestionMapper.selectById(progQuestionId);
         if (user == null) {
@@ -95,6 +98,23 @@ public class SubmitServiceImpl implements ISubmitService {
             Exper exper = experMapper.selectById(progQuestion.getExperId());
             log.info("实验状态：{}", exper.getState());
             return (userGroup != null) && (exper.getState().equals(Exper.RUNNING));
+        }
+    }
+
+
+    /**
+     * 处理用户在实验中重复提交的问题判断
+     * @param userId
+     * @param progQuestionId
+     */
+    @Override
+    public void validRepeat(String userId, String progQuestionId){
+        List<Integer> tempStatus = Arrays.asList(ProgSubmit.NOT_TESTED, ProgSubmit.TESTING, ProgSubmit.ACCEPTED,
+                ProgSubmit.ABORTED);
+        List<ProgSubmit> progSubmits = progSubmitMapper.
+                selectByUserIdQuestionIdAndStatus(userId, progQuestionId, tempStatus);
+        if(progSubmits.size() != 0){
+            throw new ElementDuplicateException(String.format("编程题 %s 重复提交", progQuestionId));
         }
     }
 
@@ -172,7 +192,7 @@ public class SubmitServiceImpl implements ISubmitService {
 
     @Override
     public List<JudgeTask> submitProgram(String userId, String problemId, String code)
-            throws NoSuchRecordException, NotAuthorizedException, IOException {
+            throws NoSuchRecordException, NotAuthorizedException, IOException, ElementDuplicateException {
 
         if (!isUserAuthorizedProgQuestion(userId, problemId)) {
             throw new NotAuthorizedException(String.format("用户 %s 没有提交问题 %s 的权限", userId, problemId));
@@ -199,7 +219,8 @@ public class SubmitServiceImpl implements ISubmitService {
     }
 
     @Override
-    public Boolean abortProgram(String userId, String problemId) throws NoSuchRecordException, NotAuthorizedException {
+    public Boolean abortProgram(String userId, String problemId) throws NoSuchRecordException,
+            NotAuthorizedException, ElementDuplicateException {
         if (!isUserAuthorizedProgQuestion(userId, problemId)) {
             throw new NotAuthorizedException(String.format("用户 %s 没有放弃问题 %s 的权限", userId, problemId));
         } else {
@@ -244,6 +265,9 @@ public class SubmitServiceImpl implements ISubmitService {
         UpdateWrapper<UserFootprint> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq("user_id", userId).eq("exper_id", experId);
         UserFootprint userFootprint = new UserFootprint();
+        if(currentQuestionNumber == -1) {
+            currentQuestionNumber = 1;
+        }
         userFootprint.setCurrentPhaseNumber(currentPhaseNumber)
                 .setCurrentQuestionNumber(currentQuestionNumber + 1);
         userFootprintMapper.update(userFootprint, updateWrapper);
@@ -251,7 +275,7 @@ public class SubmitServiceImpl implements ISubmitService {
 
     @Override
     public List<ProgramSubmitInfo> listProgramSubmitInfo(String userId, String questionId, int pageIndex, int pageSize)
-            throws NotAuthorizedException, NoSuchRecordException {
+            throws NotAuthorizedException, NoSuchRecordException, ElementDuplicateException {
         if (!isUserAuthorizedProgQuestion(userId, questionId)) {
             throw new NotAuthorizedException(String.format("用户 %s 没有解答问题 %s 的权限", userId, questionId));
         }
@@ -261,11 +285,16 @@ public class SubmitServiceImpl implements ISubmitService {
 
         List<ProgramSubmitInfo> submitInfoList = new ArrayList<>();
         for (ProgSubmit submit : submits) {
-            String submitTime = new SimpleDateFormat("yyyy-MM-dd").format(submit.getSubmitTime());
+            String submitTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(submit.getSubmitTime());
             submitInfoList.add(new ProgramSubmitInfo(submit.getId(),
                     ProgramSubmitInfo.statusMap.get(submit.getStatus()),
                     submitTime));
         }
         return submitInfoList;
+    }
+
+    @Override
+    public int getRecordNumber(String userId, String questionId) {
+        return progSubmitMapper.countUserQuestionRecords(userId, questionId);
     }
 }
