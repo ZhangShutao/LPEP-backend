@@ -341,5 +341,13 @@ class UserTest {
         System.out.println(l1);
     }
 
+    // 测试admin的sha256加密密码
+    @Test
+    void testAdminPassword(){
+        String password = "admin";
+        String res = DigestUtil.sha256Hex(password);
+        System.out.println(res);
+    }
+
 
 }
