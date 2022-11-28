@@ -1,8 +1,10 @@
 package com.kse.lpep.service;
 
+import com.kse.lpep.service.dto.ExperGroupInfo;
 import com.kse.lpep.service.dto.QueryTrainingMaterialInfo;
 import com.kse.lpep.service.dto.QueryTrainingMaterialInfoPage;
 import com.kse.lpep.service.dto.TrainingMaterialInfo;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -31,5 +33,15 @@ public interface ITrainingMaterialService {
      */
     Integer removeTrainingMaterialById(String id);
 
+    /**
+     * 查看所有实验和组别，管理员新加培训材料用
+     */
+    List<ExperGroupInfo> queryAllExperGroup();
+
+    int validStatus(String name, String experId, String groupId);
+
+
+    QueryTrainingMaterialInfo createTrainingMaterial(String name, String experId, String groupId,
+                                                MultipartFile file);
 
 }

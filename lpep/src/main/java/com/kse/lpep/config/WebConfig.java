@@ -1,11 +1,28 @@
 package com.kse.lpep.config;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+
+import java.util.concurrent.ThreadPoolExecutor;
+
+
 @Configuration
+@Slf4j
 public class WebConfig implements WebMvcConfigurer {
+
+    // bean names
+    public static final String THREAD_POOL = "threadPool";
+
+
+
+
     /**
      * 添加跨域支持
      */
@@ -26,5 +43,27 @@ public class WebConfig implements WebMvcConfigurer {
                 .maxAge(3600)
                 // 允许跨域请求可携带的header，'*'表所有header头。CORS请求时，XMLHttpRequest对象的getResponseHeader()方法只能拿到6个基本字段：Cache-Control、Content-Language、Content-Type、Expires、Last-Modified、Pragma。如果想拿到其他字段，就必须在Access-Control-Expose-Headers里面指定
                 .allowedHeaders("*");
+    }
+
+    @Bean(name = THREAD_POOL)
+    @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
+    public ThreadPoolTaskExecutor threadPool() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(1);
+        executor.setMaxPoolSize(1);
+        executor.setQueueCapacity(100);
+        executor.setRejectedExecutionHandler((Runnable r, ThreadPoolExecutor exe) -> {
+            if (!exe.isShutdown()) {
+                try {
+                    System.out.println("put into the queue");
+                    exe.getQueue().put(r);
+                } catch (InterruptedException e) {
+                    log.error(e.toString(), e);
+                    Thread.currentThread().interrupt();
+                }
+            }
+        });
+        executor.initialize();
+        return executor;
     }
 }

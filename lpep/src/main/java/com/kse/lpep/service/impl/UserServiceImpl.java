@@ -1,21 +1,26 @@
 package com.kse.lpep.service.impl;
 
+import cn.hutool.crypto.digest.DigestUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.kse.lpep.mapper.IExperMapper;
-import com.kse.lpep.mapper.IUserFootprintMapper;
-import com.kse.lpep.mapper.IUserGroupMapper;
-import com.kse.lpep.mapper.IUserMapper;
+import com.kse.lpep.common.exception.DeleteException;
+import com.kse.lpep.common.exception.ElementDuplicateException;
+import com.kse.lpep.common.exception.RecordNotExistException;
+import com.kse.lpep.common.exception.UserLoginException;
+import com.kse.lpep.mapper.*;
 import com.kse.lpep.mapper.pojo.Exper;
 import com.kse.lpep.mapper.pojo.User;
 import com.kse.lpep.mapper.pojo.UserFootprint;
 import com.kse.lpep.mapper.pojo.UserGroup;
 import com.kse.lpep.service.IUserService;
 import com.kse.lpep.service.dto.*;
+import lombok.experimental.Accessors;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,17 +40,23 @@ public class UserServiceImpl implements IUserService {
 
     @Autowired
     private IUserFootprintMapper userFootprintMapper;
+    @Autowired
+    private IGroupMapper groupMapper;
 
     @Override
     public UserLoginResult userLogin(String username, String password) {
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("username", username);
-        UserLoginResult userLoginResult = new UserLoginResult();
-        User user = userMapper.selectOne(queryWrapper);
-        if(user == null || !(user.getPassword().equals(password))){
-            System.out.println(user);
-            throw new NullPointerException();
+//        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+//        queryWrapper.eq("username", username);
+//        User user = userMapper.selectOne(queryWrapper);
+
+        User user = userMapper.selectByUsername(username);
+        // 开始加密模式
+        password = DigestUtil.sha256Hex(password);
+//        System.out.println(password);
+        if(user == null || !(StringUtils.equals(user.getPassword(), password))){
+            throw new UserLoginException("用户登录失败");
         }
+        UserLoginResult userLoginResult = new UserLoginResult();
         userLoginResult.setUserId(user.getId()).setUsername(user.getUsername())
                 .setRealname(user.getRealname()).setIsAdmin(user.getIsAdmin());
         return userLoginResult;
@@ -62,88 +73,9 @@ public class UserServiceImpl implements IUserService {
         personalResult.setUsername(user.getUsername()).setRealname(user.getRealname()).setCreateTime(myTime);
         return personalResult;
     }
-//    public List<ExperInfo> experToParticipate(String id) {
-//        // 记录最后的结果
-//        List<ExperInfo> list = new ArrayList<>();
-//        User user = new User();
-//        try{
-//            user = userMapper.selectById(id);
-//        }catch (MybatisPlusException e){
-//            // 情况2：用户不存在
-//            ExperInfo experInfo = new ExperInfo();
-//            experInfo.setState(2);
-//            list.add(experInfo);
-//            return list;
-//        }
-//        if(user == null){
-//            // 情况2：用户不存在
-//            ExperInfo experInfo = new ExperInfo();
-//            experInfo.setState(2);
-//            list.add(experInfo);
-//            return list;
-//        }
-//        if(user.getCurrentPhaseId() != null){
-//            // 情况0：用户存在中断的实验
-//            ExperInfo experInfo = new ExperInfo();
-//            experInfo.setId(user.getId());
-//            experInfo.setStartTime(user.getCurrentStart());
-//            experInfo.setState(0);
-//            experInfo.setCurrentPhaseId(user.getCurrentPhaseId());
-//            experInfo.setCurrentQuestionId(user.getCurrentQuestionId());
-//            list.add(experInfo);
-//            return list;
-//        }else{
-//            // 情况1：正常情况
-//            // 先查询表t_user_group查看用户所参与的所有实验
-//            QueryWrapper<UserGroup> queryWrapper = new QueryWrapper<>();
-//            queryWrapper.eq("user_id", id);
-//            // 记录查询结果
-//            List<UserGroup> userGroups = new ArrayList<>();
-//            try{
-//                userGroups = userGroupMapper.selectList(queryWrapper);
-//            }catch (MybatisPlusException e){
-//                // 查询出错，返回空即可
-//                return list;
-//            }
-//            // 查询出所有的实验id
-//            List<String> experIds = userGroups.stream()
-//                    .map(UserGroup::getExperId)
-//                    .collect(Collectors.toList());
-//            // 查询每个实验id的状态，满足则返回最终结果
-//            List<Exper> expers = new ArrayList<>();
-//            for(String experId : experIds){
-//                try{
-//                    Exper exper = experMapper.selectById(experId);
-//                    expers.add(exper);
-//                }catch (MybatisPlusException e){
-//                    // 查询的实验不存在，应该不存在这个问题
-//                }
-//            }
-//            for(Exper exper : expers){
-//                if(exper.getState() == 2){
-//                    // 在表t_user_accomplish中验证用户是否完成这个实验
-//                    QueryWrapper<UserFootprint> queryWrapper1 = new QueryWrapper<>();
-//                    queryWrapper1.eq("user_id", id).eq("exper_id", exper.getId());
-//                    UserFootprint userFootprint = new UserFootprint();
-//                    try{
-//                        userFootprint = userAccomplishMapper.selectOne(queryWrapper1);
-//                    }catch (RuntimeException e){
-//                        // 上面这块存在一个查找空表找不到的异常，强行用RuntimeException来接这个异常
-//                    }
-//                    if(userFootprint.getId() == null){
-//                        ExperInfo experInfo = new ExperInfo();
-//                        experInfo.setId(exper.getId());
-//                        experInfo.setTitle(exper.getTitle());
-//                        experInfo.setStartTime(exper.getStartTime());
-//                        experInfo.setState(1);
-//                        list.add(experInfo);
-//                    }
-//                }
-//            }
-//            return list;
-//        }
-//    }
+
     /*
+    没有检查后续逻辑
     情况0：用户不存在，直接返回null
     情况1：正常状态，用户可以选择其中一个待参与实验进行实验
     情况2：用户存在实验中断，此时用户只能点击中断的实验继续实验，其他待参与的实验能看到但不能开始
@@ -159,10 +91,9 @@ public class UserServiceImpl implements IUserService {
         if(userMapper.selectById(id) == null){
             throw new NullPointerException();
         }
-        QueryWrapper<UserGroup> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("user_id", id);
+
         // 2.查询获取用户所有的实验id
-        List<UserGroup> userGroups = userGroupMapper.selectList(queryWrapper);
+        List<UserGroup> userGroups = userGroupMapper.selectByUserId(id);
         List<String> experIds = userGroups.stream()
                 .filter(userGroup -> {
                     Exper exper = experMapper.selectById(userGroup.getExperId());
@@ -172,20 +103,36 @@ public class UserServiceImpl implements IUserService {
         // 3.判断用户是否存在未完成的实验，并筛选已经完成的实验
         boolean isExistBreak = false;
         for(String experId : experIds){
-            QueryWrapper<UserFootprint> queryWrapper1 = new QueryWrapper<>();
-            queryWrapper1.eq("user_id", id).eq("exper_id", experId);
-            UserFootprint userFootprint = userFootprintMapper.selectOne(queryWrapper1);
+//            UserFootprint userFootprint = userFootprintMapper.selectByUserExper(id, experId);
+            List<UserFootprint> userFootprints = userFootprintMapper.selectListByUserExper(id, experId);
+            if(userFootprints.size() > 1){
+                throw new ElementDuplicateException(String.format("用户记录表中用户 %s 在实验 %s 中出现重复错误",
+                        id, experId));
+            }
             ExperInfo experInfo = new ExperInfo();
             experInfo.setState(0);
-            if(userFootprint != null){
+            if(userFootprints.size() == 1){
+                UserFootprint userFootprint = userFootprints.get(0);
                 if(userFootprint.getIsEnd() == 1){
                     continue;
                 }
                 // 情况1：存在实验中断
                 String currentStartTime = new SimpleDateFormat("yyyy-MM-dd").format(userFootprint.getStartTime());
+                long startTime = userFootprint.getStartTime().getTime();
                 experInfo.setCurrentPhaseNumber(userFootprint.getCurrentPhaseNumber())
-                        .setCurrentStartTime(currentStartTime)
-                        .setCurrentQuestionNumber(userFootprint.getCurrentQuestionNumber()).setState(1);
+                        .setCurrentStartTime(startTime).setState(1);
+                int myCurrentQuestionNumber = userFootprint.getCurrentQuestionNumber();
+
+                if(myCurrentQuestionNumber == -1){
+                    experInfo.setCurrentQuestionNumber(1);
+                }else{
+                    experInfo.setCurrentQuestionNumber(userFootprint.getCurrentQuestionNumber());
+                }
+
+                // 错误的逻辑
+//                if(userFootprint.getCurrentQuestionNumber() != null){
+//                    experInfo.setCurrentQuestionNumber(userFootprint.getCurrentQuestionNumber());
+//                }
                 isExistBreak = true;
             }
             // 情况2：正常情况，正常状态为1，存在中断状态为2
@@ -210,7 +157,7 @@ public class UserServiceImpl implements IUserService {
     @Override
     public TesterInfoPage queryAllTester(int pageIndex, int pageSize) {
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq("is_admin", 0);
+        queryWrapper.eq("is_admin", 0).orderByAsc("username");
         Page<User> userPage = new Page<>(pageIndex, pageSize, true);
         IPage<User> userIPage = userMapper.selectPage(userPage, queryWrapper);
         List<TesterInfo> testerInfoList = userIPage.getRecords().stream()
@@ -228,10 +175,13 @@ public class UserServiceImpl implements IUserService {
         return testerInfoPage;
     }
 
+    @Transactional
     @Override
     public TesterInfo createNewUser(String username, String realname, int isAdmin) {
         User user = new User();
-        user.setUsername(username).setPassword(username).setRealname(realname).setIsAdmin(isAdmin);
+        //开启加密
+        String password = DigestUtil.sha256Hex(username);
+        user.setUsername(username).setPassword(password).setRealname(realname).setIsAdmin(isAdmin);
         try{
             userMapper.insert(user);
             QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -260,8 +210,75 @@ public class UserServiceImpl implements IUserService {
     /**
      * 管理员删除用户
      */
+    @Transactional
     @Override
     public int deleteUser(String userId) {
         return userMapper.deleteById(userId);
+    }
+
+    @Override
+    public UserRealnameDto getRealname(String username) {
+        User user = userMapper.selectByUsername(username);
+        if(user == null){
+            throw new NullPointerException("用户账号信息不存在");
+        }
+        UserRealnameDto userRealnameDto = new UserRealnameDto();
+        userRealnameDto.setUserId(user.getId()).setRealname(user.getRealname());
+        return userRealnameDto;
+    }
+
+    @Override
+    public UserWithGroupInfoPage getAllUserGroupByExperId(String experId, int pageIndex, int pageSize) {
+        QueryWrapper<UserGroup> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("exper_id", experId);
+
+        Page<UserGroup> userGroupPage = new Page<>(pageIndex, pageSize, true);
+        IPage<UserGroup> userGroupIPage = userGroupMapper.selectPage(userGroupPage, queryWrapper);
+
+        if(userGroupIPage.getTotal() == 0){
+            throw new NullPointerException("该实验没有加入用户");
+        }
+        List<UserWithGroupInfo> userWithGroupInfoList = userGroupIPage.getRecords().stream()
+                .map(u->{
+                    UserWithGroupInfo userWithGroupInfo = new UserWithGroupInfo();
+                    try{
+                        User user = userMapper.selectById(u.getUserId());
+                        userWithGroupInfo.setUserId(u.getUserId()).setUsername(user.getUsername())
+                                .setRealname(user.getRealname());
+                    }catch (NullPointerException e){
+                        throw new RecordNotExistException("userGroup表中的userId错误");
+                    }
+                    try{
+                        String groupName = groupMapper.selectById(u.getGroupId()).getTitle();
+                        userWithGroupInfo.setGroup(u.getGroupId()).setGroupName(groupName);
+                    }catch (NullPointerException e){
+                        throw new RecordNotExistException("userGroup表中的groupId错误");
+                    }
+                    return userWithGroupInfo;
+                }).collect(Collectors.toList());
+        UserWithGroupInfoPage userWithGroupInfoPage = new UserWithGroupInfoPage();
+        userWithGroupInfoPage.setRecordCount((int)userGroupIPage.getTotal())
+                .setUserWithGroupInfoList(userWithGroupInfoList);
+        return userWithGroupInfoPage;
+    }
+
+    @Transactional
+    @Override
+    public void deleteUserFromExper(String experId, String userId) {
+        Exper exper = experMapper.selectById(experId);
+        if(exper == null){
+            throw new RecordNotExistException("实验id不存在");
+        }
+        if(exper.getState() != 0){
+            throw new DeleteException("只有处于未开始的实验可以移除测试人员");
+        }
+        if(userMapper.selectById(userId) == null){
+            throw new RecordNotExistException("用户id不存在");
+        }
+        String userGroupId = userGroupMapper.selectIdByExperUser(experId, userId);
+        if(StringUtils.isBlank(userGroupId)){
+            throw new RecordNotExistException("该用户并没有分配到目标实验中");
+        }
+        userGroupMapper.deleteById(userGroupId);
     }
 }
