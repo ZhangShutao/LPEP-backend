@@ -4,12 +4,12 @@ import com.kse.lpep.common.exception.UnsupportedOsTypeException;
 import com.kse.lpep.judge.CommandLineExecutor;
 import com.kse.lpep.judge.dto.CommandLineOutput;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.apache.commons.lang3.SystemUtils;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
@@ -101,20 +101,19 @@ public class CommandLineExecutorImpl implements CommandLineExecutor {
         params.forEach(cmdJoiner::add);
         log.info("call shell with the following command: {}", cmdJoiner);
 
-        List<String> cmdArray = getCommandLinePrefix();
-        cmdArray.add(name);
-        cmdArray.addAll(params);
+        CommandLine cmd = CommandLine.parse(cmdJoiner.toString());
+        DefaultExecutor executor = new DefaultExecutor();
+        int[] exitValues = {0, 20, 30, 65};
 
-        Process process = Runtime.getRuntime().exec(cmdArray.toArray(new String[0]));
-        ReadThread outputReader = new ReadThread(process.getInputStream());
-        outputReader.start();
-        ReadThread errorReader = new ReadThread(process.getErrorStream());
-        errorReader.start();
-        log.info("reader threads started");
-        String output = outputReader.getResult();
-        String error = errorReader.getResult();
-        log.info("result read");
+        executor.setExitValues(exitValues);
 
-        return new CommandLineOutput(output, error);
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+        ByteArrayOutputStream stderr = new ByteArrayOutputStream();
+        PumpStreamHandler phs = new PumpStreamHandler(stdout, stderr);
+        executor.setStreamHandler(phs);
+
+        executor.execute(cmd);
+
+        return new CommandLineOutput(stdout.toString(), stderr.toString());
     }
 }
