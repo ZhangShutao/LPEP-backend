@@ -94,6 +94,9 @@ public class JudgeServiceImpl implements IJudgeService {
             } else if (task.getStatus() == JudgeTask.Status.SYNTAX_ERROR) {
                 progSubmitMapper.updateStatusById(task.getProgSubmitId(), ProgSubmit.SYNTAX_ERROR);
                 log.info("测试数据 {} 存在语法错误", task.getCaseNumber());
+            } else if (task.getStatus() == JudgeTask.Status.TIME_LIMIT_EXCEEDED) {
+                progSubmitMapper.updateStatusById(task.getProgSubmitId(), ProgSubmit.TIME_LIMIT_EXCEEDED);
+                log.info("测试数据 {} 运行超时", task.getCaseNumber());
             }
 
             return task;
