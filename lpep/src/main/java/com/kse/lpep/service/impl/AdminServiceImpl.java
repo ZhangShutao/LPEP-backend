@@ -84,7 +84,7 @@ public class AdminServiceImpl implements IAdminService {
 //        if(isWindows == 1) {
 //            workspace = "c:" + fileSeparator + workspace;
 //        }
-        workspace = fileSeparator + workspace;
+        workspace = fileSeparator + "lpep" + workspace;
 
         exper.setTitle(experName).setCreator(creatorId).setState(0).setWorkspace(workspace)
                 .setStartTime(myStartTime);
