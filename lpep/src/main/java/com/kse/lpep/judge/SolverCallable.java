@@ -54,17 +54,15 @@ public class SolverCallable implements Callable<JudgeTask> {
             log.debug("the output of solver is :\n{}", task.getOutput());
             log.debug("the error info of solver is: \n{}", task.getErrorMsg());
 
-            if (task.getOutput().contains("UNKNOWN")) {
-                if (task.getErrorMsg().contains("syntax error") ||
-                        task.getErrorMsg().contains("lexer error") ||
-                        task.getErrorMsg().contains("unsafe variables")) { // 错误信息中存在语法错误或存在不安全的变量
-                    task.setStatus(JudgeTask.Status.SYNTAX_ERROR);
+            if (task.getErrorMsg().contains("syntax error") ||
+                    task.getErrorMsg().contains("lexer error") ||
+                    task.getErrorMsg().contains("unsafe variables")) { // 错误信息中存在语法错误或存在不安全的变量
+                task.setStatus(JudgeTask.Status.SYNTAX_ERROR);
 
-                    log.info("第 {} 组数据运行时发生语法错误。", task.getCaseNumber());
-                } else {
-                    task.setStatus(JudgeTask.Status.ABORTED);
-                    log.warn("第 {} 组数据运行时发生未知错误。", task.getCaseNumber());
-                }
+                log.info("第 {} 组数据运行时发生语法错误。", task.getCaseNumber());
+            } else if (task.getOutput().contains("UNKNOWN")) {
+                task.setStatus(JudgeTask.Status.ABORTED);
+                log.warn("第 {} 组数据运行时发生未知错误。", task.getCaseNumber());
             } else {
                 double runnerSecond = extractUsedTime(task.getOutput());
                 task.setRunnerTime(runnerSecond);
