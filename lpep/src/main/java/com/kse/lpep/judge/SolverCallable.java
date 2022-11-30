@@ -51,22 +51,32 @@ public class SolverCallable implements Callable<JudgeTask> {
             log.info("运行时间上限：{}", task.getTimeLimit());
             exec.submit(timedRunnable).get(task.getTimeLimit(), TimeUnit.SECONDS);
 
-            if (task.getErrorMsg().contains("syntax error")) { // 错误信息中存在语法错误
-                task.setStatus(JudgeTask.Status.SYNTAX_ERROR);
+            log.debug("the output of solver is :\n{}", task.getOutput());
+            log.debug("the error info of solver is: \n{}", task.getErrorMsg());
 
-                log.error("第 {} 组数据运行时发生语法错误。", task.getCaseNumber());
+            if (task.getOutput().contains("UNKNOWN")) {
+                if (task.getErrorMsg().contains("syntax error") ||
+                        task.getErrorMsg().contains("lexer error") ||
+                        task.getErrorMsg().contains("unsafe variables")) { // 错误信息中存在语法错误或存在不安全的变量
+                    task.setStatus(JudgeTask.Status.SYNTAX_ERROR);
+
+                    log.info("第 {} 组数据运行时发生语法错误。", task.getCaseNumber());
+                } else {
+                    task.setStatus(JudgeTask.Status.ABORTED);
+                    log.warn("第 {} 组数据运行时发生未知错误。", task.getCaseNumber());
+                }
             } else {
                 double runnerSecond = extractUsedTime(task.getOutput());
                 task.setRunnerTime(runnerSecond);
                 task.setStatus(JudgeTask.Status.JUDGING);
 
-                log.error("第 {} 组数据运行结束，待测试。", task.getCaseNumber());
+                log.warn("第 {} 组数据运行结束，待测试。", task.getCaseNumber());
             }
 
         } catch (InterruptedException | ExecutionException e) {
             task.setStatus(JudgeTask.Status.ABORTED);
 
-            log.error("推理机任务 {} 被中断。", task.getCaseNumber());
+            log.warn("推理机任务 {} 被中断。", task.getCaseNumber());
             throw new RuntimeException(e);
         } catch (TimeoutException e) {
             task.setStatus(JudgeTask.Status.TIME_LIMIT_EXCEEDED);
