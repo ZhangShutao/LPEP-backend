@@ -50,6 +50,7 @@ public class TimedRunnable implements Callable<JudgeTask> {
 
                 CommandLineOutput output = solveProgram(task.getCmd(), params);
 
+                log.debug("the solver has exterminated with exit value {}", output.getError());
                 task.setOutput(output.getOutput());
                 task.setErrorMsg(output.getError());
             }
