@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.FileSystems;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -347,6 +348,17 @@ class UserTest {
         String password = "admin";
         String res = DigestUtil.sha256Hex(password);
         System.out.println(res);
+    }
+
+    // 测试字符串的编码转换
+    @Test
+    void testStringUTF(){
+        String s = "你好a1dsadqw12r";
+        try {
+            System.out.println(new String(s.getBytes("GBK"), "GBK"));
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

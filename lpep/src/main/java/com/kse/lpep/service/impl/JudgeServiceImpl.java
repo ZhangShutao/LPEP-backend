@@ -99,6 +99,10 @@ public class JudgeServiceImpl implements IJudgeService {
                 log.info("测试数据 {} 运行超时", task.getCaseNumber());
             }
 
+            // 修改notTest问题
+            if(task.getStatus() == JudgeTask.Status.PENDING){
+                task.setStatus(JudgeTask.Status.ABORTED);
+            }
             return task;
 
         } catch (InterruptedException | ExecutionException | TimeoutException | IOException e) {

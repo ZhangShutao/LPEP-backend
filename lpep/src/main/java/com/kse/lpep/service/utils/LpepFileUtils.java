@@ -1,5 +1,7 @@
 package com.kse.lpep.service.utils;
 
+import org.apache.catalina.util.URLEncoder;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,7 +15,11 @@ import java.util.StringJoiner;
  */
 public class LpepFileUtils {
     public static String readFile(String fileName) throws IOException {
-        InputStream inputStream = Files.newInputStream(new File(fileName).toPath());
+        // 将读入的字符串转变为utf-8编码
+        String fileNameUTF = new String(fileName.getBytes("utf-8"), "utf-8");
+        InputStream inputStream = Files.newInputStream(new File(fileNameUTF).toPath());
+
+//        InputStream inputStream = Files.newInputStream(new File(fileName).toPath());
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         StringJoiner joiner = new StringJoiner(System.lineSeparator());
         String line;
