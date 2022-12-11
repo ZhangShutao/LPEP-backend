@@ -6,7 +6,6 @@ import lombok.Setter;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -24,7 +23,7 @@ public class CdlpResult {
     @Setter
     @Getter
     @EqualsAndHashCode
-    public class CdlpModel {
+    public static class CdlpModel {
 
         private Set<String> x;
 
@@ -42,6 +41,17 @@ public class CdlpResult {
 
             this.x = new HashSet<>(Arrays.asList(xPart));
             this.y = new HashSet<>(Arrays.asList(yPart));
+        }
+    }
+
+    @Getter
+    @Setter
+    @EqualsAndHashCode
+    public static class CdlpModelX {
+        private Set<String> x;
+
+        public CdlpModelX(Set<String> x) {
+            this.x = x;
         }
     }
 
@@ -63,6 +73,24 @@ public class CdlpResult {
             return new CdlpResult(true, str);
         } else {
             return new CdlpResult(false, "");
+        }
+    }
+
+    public Set<CdlpModelX> getX() {
+        Set<CdlpModelX> x = new HashSet<>();
+        this.models.forEach(m -> x.add(new CdlpModelX(m.getX())));
+        return x;
+    }
+
+    private static boolean set_equals(Set<CdlpModelX> a, Set<CdlpModelX> b) {
+        return a.containsAll(b) && b.containsAll(a);
+    }
+
+    public boolean x_equals(CdlpResult other) {
+        if (other == null || other.getClass() != CdlpResult.class) {
+            return false;
+        } else {
+            return set_equals(this.getX(), other.getX());
         }
     }
 }

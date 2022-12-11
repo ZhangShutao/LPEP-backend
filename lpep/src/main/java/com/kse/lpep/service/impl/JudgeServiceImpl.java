@@ -49,7 +49,7 @@ public class JudgeServiceImpl implements IJudgeService {
             if (standardOutput.startsWith("clingo")) {
                 return isAspResultCorrect(standardOutput, task.getOutput());
             } else if (standardOutput.startsWith("CDLSolver")) {
-                return isCdlpResultCorrect(standardOutput, task.getOutput());
+                return isCdlpResultXCorrect(standardOutput, task.getOutput());
             }
 //            return !task.getOutput().contains("Unsatisfiable");
         }
@@ -66,6 +66,18 @@ public class JudgeServiceImpl implements IJudgeService {
         CdlpResult stdResult = CdlpResult.parseCdlpResult(stdOutput);
         CdlpResult userResult = CdlpResult.parseCdlpResult(userOutput);
         return stdResult.equals(userResult);
+    }
+
+    /**
+     * 只比较X部分的集合
+     * @param stdOutput 标准输出
+     * @param userOutput 用户输出
+     * @return 比较结果，X部分相同则返回true
+     */
+    private Boolean isCdlpResultXCorrect(String stdOutput, String userOutput) {
+        CdlpResult stdResult = CdlpResult.parseCdlpResult(stdOutput);
+        CdlpResult userResult = CdlpResult.parseCdlpResult(userOutput);
+        return stdResult.x_equals(userResult);
     }
 
     @Override
